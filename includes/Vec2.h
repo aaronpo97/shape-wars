@@ -2,7 +2,7 @@
 #define VEC2_H
 
 class Vec2 {
- public:
+public:
   double x, y;
 
   Vec2(float x = 0, float y = 0);
@@ -11,6 +11,7 @@ class Vec2 {
   bool operator!=(const Vec2 &rhs) const;
 
   Vec2 operator-(const Vec2 &rhs) const;
+  Vec2 operator+(const Vec2 &rhs) const;
   Vec2 operator*(const float val) const;
   Vec2 operator/(const float val) const;
 
@@ -19,8 +20,8 @@ class Vec2 {
   void operator*=(const float val);
   void operator/=(const float val);
 
-  void normalize();
+  void  normalize();
   float length() const;
 };
 
-#endif  // VEC2_H
+#endif // VEC2_H
