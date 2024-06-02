@@ -1,0 +1,9 @@
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AllowAllParametersOfDeclarationOnNextLine: true
+BinPackParameters: false
+AllowShortFunctionsOnASingleLine: Empty
+BreakConstructorInitializers: AfterColon
+PackConstructorInitializers: NextLineOnly
+NamespaceIndentation: All
+ColumnLimit: 100
