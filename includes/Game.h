@@ -1,4 +1,4 @@
-#include "Entity.h"
+#include "./Entity.h"
 #include "EntityManager.h"
 #include <SFML/Graphics.hpp>
 

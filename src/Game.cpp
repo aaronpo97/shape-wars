@@ -26,18 +26,18 @@ void Game::init(const std::string &path) {
   //       m_bulletConfig.OT >> m_bulletConfig.V >> m_bulletConfig.L >> m_bulletConfig.S;
 
   m_playerConfig.SR = 32;
-  m_playerConfig.CR = 8;
-  m_playerConfig.FR = 80;
-  m_playerConfig.FG = 80;
-  m_playerConfig.FB = 80;
+  m_playerConfig.CR = 32;
+  m_playerConfig.S  = 5;
+  m_playerConfig.FR = 5;
+  m_playerConfig.FG = 5;
+  m_playerConfig.FB = 5;
   m_playerConfig.OR = 255;
   m_playerConfig.OG = 0;
   m_playerConfig.OB = 0;
   m_playerConfig.OT = 4;
-  m_playerConfig.V  = 1;
-  m_playerConfig.S  = 1;
+  m_playerConfig.V  = 8;
 
-  m_window.create(sf::VideoMode(1600, 900), "SFML works!");
+  m_window.create(sf::VideoMode(1600, 900), "Geometry Wars");
 
   m_window.setFramerateLimit(60);
 
@@ -47,6 +47,7 @@ void Game::init(const std::string &path) {
 void Game::run() {
 
   // TODO add pause functionality, some systems should not run when paused, others should
+  // Animation Loop
   while (m_running) {
     m_entities.update();
 
@@ -55,6 +56,10 @@ void Game::run() {
       sMovement();
       sCollision();
       sUserInput();
+    }
+
+    if (m_currentFrame - m_lastEnemySpawnTime > 120) {
+      spawnEnemy();
     }
 
     sRender();
@@ -123,6 +128,10 @@ void Game::sUserInput() {
       m_player->cInput->down  = key_code == sf::Keyboard::S ? false : m_player->cInput->down;
       m_player->cInput->right = key_code == sf::Keyboard::D ? false : m_player->cInput->right;
     }
+
+    if (event.type == sf::Event::Closed) {
+      m_running = false;
+    }
   }
 }
 void Game::sLifespan() {
@@ -130,6 +139,10 @@ void Game::sLifespan() {
 }
 
 void Game::sRender() {
+  if (!m_running) {
+    m_window.close();
+  }
+
   m_window.clear();
 
   for (auto e : m_entities.getEntities()) {
@@ -149,35 +162,41 @@ void Game::sCollision() {
   // Collision detection system
 }
 
+// TODO finish adding all the properties of the player using the values from the config file
 void Game::spawnPlayer() {
-
-  // TODO finish adding all the properties of the player using the values from the config file
-  auto entity = m_entities.addEntity(EntityTags::Player);
-
-  float mx = m_window.getSize().x / 2.0f;
-  float my = m_window.getSize().y / 2.0f;
-
-  // give this entity a transform so that it spawns at (mx, my) with a velocity of (1, 1) and
-  // angle 0
+  auto  entity       = m_entities.addEntity(EntityTags::Player);
+  float mx           = m_window.getSize().x / 2.0f;
+  float my           = m_window.getSize().y / 2.0f;
   entity->cTransform = std::make_shared<CTransform>(Vec2(mx, my), Vec2(1, 1), 0);
-
-  // The entity's shape will have radius 32, 8 sides, dark grey fill, and red outline of thickness 4
-  entity->cShape = std::make_shared<CShape>(32.f, 8, sf::Color(80, 80, 80), sf::Color::Red, 4);
-
-  // Add an input component to the player so that we can use inputs
-  entity->cInput = std::make_shared<CInput>();
-
-  // since we want this entity to be our player, set our game's player to this entity
-  // this goes slightly against the EntityManager paradigm, but we use the player so much that it is
-  // worth it.
-  m_player = entity;
+  entity->cShape     = std::make_shared<CShape>(32.f, 8, sf::Color(80, 80, 80), sf::Color::Red, 4);
+  entity->cInput     = std::make_shared<CInput>();
+  m_player           = entity;
 }
 
+// TODO finish adding all the properties of the enemy using the values from the config file
 void Game::spawnEnemy() {
-  // TODO : make sure the enemy is spawned properly with the m_enemyConfig variables, the enemy must
-  // be spawned completely within the bounds of the window
 
+  // the rainbow
+  auto Red    = sf::Color::Red;
+  auto Orange = sf::Color(255, 165, 0);
+  auto Yellow = sf::Color::Yellow;
+  auto Green  = sf::Color::Green;
+  auto Blue   = sf::Color::Blue;
+  auto Indigo = sf::Color(75, 0, 130);
+  auto Violet = sf::Color(238, 130, 238);
+
+  std::array<sf::Color, 7> colors = {Red, Orange, Yellow, Green, Blue, Indigo, Violet};
+
+  auto  entity         = m_entities.addEntity(EntityTags::Enemy);
+  float randomX        = rand() % m_window.getSize().x;
+  float randomY        = rand() % m_window.getSize().y;
+  float randomAngle    = rand() % 360;
+  auto  randomColor    = colors[rand() % 7];
+  auto  randomOutline  = colors[rand() % 7];
+  float randomVertices = rand() % 10 + 3;
   m_lastEnemySpawnTime = m_currentFrame;
+  entity->cTransform   = std::make_shared<CTransform>(Vec2(randomX, randomY), Vec2(1, 1), randomAngle);
+  entity->cShape       = std::make_shared<CShape>(32.f, randomVertices, randomColor, randomOutline, 4);
 }
 
 void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {

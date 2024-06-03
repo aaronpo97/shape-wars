@@ -1,43 +1,41 @@
-# Makefile
+CXX     := g++
+OUTPUT  := GeometryWars
 
-# Compiler and flags
-CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra
+SFML_DIR := ./dependencies/sfml/2.6.1
 
-# Directories
-SRC_DIR = ./src
-BUILD_DIR = ./build
-INCLUDE_DIR = /opt/homebrew/Cellar/sfml/2.6.1/include
-LIB_DIR = /opt/homebrew/Cellar/sfml/2.6.1/lib
+# compiler and linker flags
+CXX_FLAGS := -O3 -std=c++17
+INCLUDES  := -I./src -I$(SFML_DIR)/include
+LDFLAGS   := -O3 -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -L$(SFML_DIR)/lib
 
-# Libraries
-LIBS = -lsfml-graphics -lsfml-window -lsfml-system
+# the source files for the ecs game engine
+SRC_FILES := $(wildcard src/*.cpp)
+OBJ_FILES := $(patsubst src/%.cpp, objects/%.o, $(SRC_FILES))
 
-# Target executable
-TARGET = $(BUILD_DIR)/main.out
+# all of these targets will be made if you just type make
+all: $(OUTPUT)
 
-# Source files and object files
-SRC_FILES = $(wildcard $(SRC_DIR)/*.cpp)
-OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRC_FILES))
+# create bin and objects directories if they don't exist
+$(OUTPUT): | bin objects
 
-# Default rule
-all: $(TARGET)
+bin:
+	mkdir -p bin
 
-# Build rule
-$(TARGET): $(OBJ_FILES)
-	$(CXX) $(OBJ_FILES) $(CXXFLAGS) -o $(TARGET) -L$(LIB_DIR) $(LIBS)
+objects:
+	mkdir -p objects
 
-# Rule to create object files
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
+# define the main executable requirements / command
+$(OUTPUT): $(OBJ_FILES) Makefile
+	$(CXX) $(OBJ_FILES) $(LDFLAGS) -o ./bin/$@
 
-# Clean rule
+# specifies how the object files are compiled from cpp files
+objects/%.o: src/%.cpp | objects
+	$(CXX) -c $(CXX_FLAGS) $(INCLUDES) $< -o $@
+
+# typing 'make clean' will remove all intermediate build files
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -r bin objects
 
-.PHONY: all clean
-
-
-run:
-	$(TARGET)
+# typing 'make run' will compile and run the program
+run: $(OUTPUT)
+	cd bin && ./sfmlgame && cd ..

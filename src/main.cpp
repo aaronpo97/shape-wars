@@ -1,8 +1,8 @@
 #include "../includes/Game.h"
 #include "../tests/Vec2/Vec2.test.cpp"
+#include <SFML/Graphics.hpp>
 #include <fstream>
 #include <iostream>
-#include <sfml/Graphics.hpp>
 
 int main() {
 
