@@ -1,11 +1,13 @@
+#include "../includes/Game.h"
 #include "../tests/Vec2/Vec2.test.cpp"
+#include <fstream>
 #include <iostream>
+#include <sfml/Graphics.hpp>
 
 int main() {
-  std::cout << "Hello, World!" << std::endl;
 
-  Vec2Test vec2Test;
+  Game game("config.txt");
 
-  vec2Test.test();
+  game.run();
   return 0;
 }
