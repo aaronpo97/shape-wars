@@ -50,6 +50,20 @@ void Game::init(const std::string &path) {
   m_enemyConfig.SMIN = 90;
   m_enemyConfig.SMAX = 60;
 
+  // 15 15 8 255 0 0 255 100 150 4 9 90 6
+  m_bulletConfig.SR = 15;
+  m_bulletConfig.CR = 15;
+  m_bulletConfig.FR = 8;
+  m_bulletConfig.FG = 255;
+  m_bulletConfig.FB = 0;
+  m_bulletConfig.OR = 0;
+  m_bulletConfig.OG = 0;
+  m_bulletConfig.OB = 255;
+  m_bulletConfig.OT = 2;
+  m_bulletConfig.V  = 150;
+  m_bulletConfig.L  = 4;
+  m_bulletConfig.S  = 9;
+
   m_window.create(sf::VideoMode(1600, 900), "Geometry Wars");
 
   m_window.setFramerateLimit(60);
@@ -138,6 +152,15 @@ void Game::sUserInput() {
       m_player->cInput->right = key_code == sf::Keyboard::D ? false : m_player->cInput->right;
     }
 
+    const auto left_mouse_pressed = event.type == sf::Event::MouseButtonPressed;
+
+    if (left_mouse_pressed) {
+      const Vec2 mousePos = {static_cast<float>(event.mouseButton.x),
+                             static_cast<float>(event.mouseButton.y)};
+
+      m_player->cInput->shoot = true;
+    }
+
     if (event.type == sf::Event::Closed) {
       m_running = false;
     }
@@ -166,6 +189,14 @@ void Game::sRender() {
 void Game::sEnemySpawner() {
   if (m_currentFrame - m_lastEnemySpawnTime > 120) {
     spawnEnemy();
+  }
+
+  if (m_player->cInput->shoot) {
+    Vec2 mousePos{static_cast<float>(sf::Mouse::getPosition(m_window).x),
+                  static_cast<float>(sf::Mouse::getPosition(m_window).y)};
+
+    spawnBullet(m_player, mousePos);
+    m_player->cInput->shoot = false;
   }
 }
 
@@ -253,7 +284,25 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
 }
 
 void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos) {
-  // Spawn a bullet entity from a given entity towards a mouse position
+
+  // Calculate the difference between the mouse position and the entity position
+  auto difference = Vec2(static_cast<float>(mousePos.x - entity->cTransform->pos.x),
+                         static_cast<float>(mousePos.y - entity->cTransform->pos.y));
+
+  difference.normalize();
+
+  // Spawn a bullet entity from a given entity
+  const int  SHAPE_RADIUS      = m_bulletConfig.SR;
+  const int  OUTLINE_THICKNESS = m_bulletConfig.OT;
+  const auto COLOR             = sf::Color(m_bulletConfig.FR, m_bulletConfig.FG, m_bulletConfig.FB);
+  const auto OUTLINE           = sf::Color(m_bulletConfig.OR, m_bulletConfig.OG, m_bulletConfig.OB);
+  const int  VERTICES          = 10;
+  const auto VELOCITY          = Vec2(static_cast<float>(m_bulletConfig.S * difference.x),
+                                      static_cast<float>(m_bulletConfig.S * difference.y));
+
+  auto bullet        = m_entities.addEntity(EntityTags::Bullet);
+  bullet->cTransform = std::make_shared<CTransform>(entity->cTransform->pos, Vec2(1, 1), 0);
+  bullet->cShape = std::make_shared<CShape>(SHAPE_RADIUS, VERTICES, COLOR, OUTLINE, OUTLINE_THICKNESS);
 }
 
 void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity) {
