@@ -38,4 +38,4 @@ clean:
 
 # typing 'make run' will compile and run the program
 run: $(OUTPUT)
-	cd bin && ./sfmlgame && cd ..
+	cd bin && ./GeometryWars && cd ..

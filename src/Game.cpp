@@ -37,6 +37,19 @@ void Game::init(const std::string &path) {
   m_playerConfig.OT = 4;
   m_playerConfig.V  = 8;
 
+  m_enemyConfig.SR   = 32;
+  m_enemyConfig.CR   = 32;
+  m_enemyConfig.OR   = 255;
+  m_enemyConfig.OG   = 255;
+  m_enemyConfig.OB   = 255;
+  m_enemyConfig.OT   = 3;
+  m_enemyConfig.VMIN = 3;
+  m_enemyConfig.VMAX = 10;
+  m_enemyConfig.L    = 3;
+  m_enemyConfig.SI   = 8;
+  m_enemyConfig.SMIN = 90;
+  m_enemyConfig.SMAX = 60;
+
   m_window.create(sf::VideoMode(1600, 900), "Geometry Wars");
 
   m_window.setFramerateLimit(60);
@@ -56,10 +69,6 @@ void Game::run() {
       sMovement();
       sCollision();
       sUserInput();
-    }
-
-    if (m_currentFrame - m_lastEnemySpawnTime > 120) {
-      spawnEnemy();
     }
 
     sRender();
@@ -155,11 +164,39 @@ void Game::sRender() {
 }
 
 void Game::sEnemySpawner() {
-  // Enemy spawner system
+  if (m_currentFrame - m_lastEnemySpawnTime > 120) {
+    spawnEnemy();
+  }
 }
 
 void Game::sCollision() {
-  // Collision detection system
+  auto enforceBoundaries = [this](const std::shared_ptr<Entity> &entity) {
+    const sf::CircleShape &shape      = entity->cShape->circle;
+    const Vec2            &pos        = entity->cTransform->pos;
+    const float            radius     = shape.getRadius();
+    const auto             windowSize = m_window.getSize();
+
+    if (pos.x + radius > windowSize.x) {
+      entity->cTransform->pos.x = windowSize.x - radius;
+    }
+    if (pos.x - radius < 0) {
+      entity->cTransform->pos.x = radius;
+    }
+    if (pos.y + radius > windowSize.y) {
+      entity->cTransform->pos.y = windowSize.y - radius;
+    }
+    if (pos.y - radius < 0) {
+      entity->cTransform->pos.y = radius;
+    }
+  };
+
+  for (auto e : m_entities.getEntities()) {
+    if (e->tag() != EntityTags::Bullet) {
+      enforceBoundaries(e);
+
+      return;
+    }
+  }
 }
 
 // TODO finish adding all the properties of the player using the values from the config file
@@ -167,36 +204,48 @@ void Game::spawnPlayer() {
   auto  entity       = m_entities.addEntity(EntityTags::Player);
   float mx           = m_window.getSize().x / 2.0f;
   float my           = m_window.getSize().y / 2.0f;
-  entity->cTransform = std::make_shared<CTransform>(Vec2(mx, my), Vec2(1, 1), 0);
-  entity->cShape     = std::make_shared<CShape>(32.f, 8, sf::Color(80, 80, 80), sf::Color::Red, 4);
-  entity->cInput     = std::make_shared<CInput>();
   m_player           = entity;
+  entity->cTransform = std::make_shared<CTransform>(Vec2(mx, my), Vec2(1, 1), 0);
+  entity->cShape     = std::make_shared<CShape>(
+      m_playerConfig.SR, m_playerConfig.V,
+      sf::Color(m_playerConfig.FR, m_playerConfig.FG, m_playerConfig.FB),
+      sf::Color(m_playerConfig.OR, m_playerConfig.OG, m_playerConfig.OB), m_playerConfig.OT);
+  entity->cInput = std::make_shared<CInput>();
 }
 
 // TODO finish adding all the properties of the enemy using the values from the config file
 void Game::spawnEnemy() {
 
-  // the rainbow
-  auto Red    = sf::Color::Red;
-  auto Orange = sf::Color(255, 165, 0);
-  auto Yellow = sf::Color::Yellow;
-  auto Green  = sf::Color::Green;
-  auto Blue   = sf::Color::Blue;
-  auto Indigo = sf::Color(75, 0, 130);
-  auto Violet = sf::Color(238, 130, 238);
+  /*
+    - Red
+    - Orange
+    - Yellow
+    - Green
+    - Blue
+    - Indigo
+    - Violet
+  */
+  std::array<sf::Color, 7> COLORS = {
+      sf::Color::Red,  sf::Color(255, 165, 0), sf::Color::Yellow,        sf::Color::Green,
+      sf::Color::Blue, sf::Color(75, 0, 130),  sf::Color(238, 130, 238),
+  };
 
-  std::array<sf::Color, 7> colors = {Red, Orange, Yellow, Green, Blue, Indigo, Violet};
+  int       MAX_VERTICES      = m_enemyConfig.VMAX;
+  int       MIN_VERTICES      = m_enemyConfig.VMIN;
+  int       RADIUS            = m_enemyConfig.CR;
+  int       OUTLINE_THICKNESS = m_enemyConfig.OT;
+  float     RANDOM_X          = rand() % m_window.getSize().x;
+  float     RANDOM_Y          = rand() % m_window.getSize().y;
+  float     RANDOM_ANGLE      = rand() % 360;
+  float     RANDOM_VERTICES   = rand() % MAX_VERTICES + MIN_VERTICES;
+  sf::Color COLOR             = COLORS[rand() % 7];
+  sf::Color OUTLINE           = sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OB);
 
-  auto  entity         = m_entities.addEntity(EntityTags::Enemy);
-  float randomX        = rand() % m_window.getSize().x;
-  float randomY        = rand() % m_window.getSize().y;
-  float randomAngle    = rand() % 360;
-  auto  randomColor    = colors[rand() % 7];
-  auto  randomOutline  = colors[rand() % 7];
-  float randomVertices = rand() % 10 + 3;
+  auto entity = m_entities.addEntity(EntityTags::Enemy);
+
   m_lastEnemySpawnTime = m_currentFrame;
-  entity->cTransform   = std::make_shared<CTransform>(Vec2(randomX, randomY), Vec2(1, 1), randomAngle);
-  entity->cShape       = std::make_shared<CShape>(32.f, randomVertices, randomColor, randomOutline, 4);
+  entity->cTransform = std::make_shared<CTransform>(Vec2(RANDOM_X, RANDOM_Y), Vec2(1, 1), RANDOM_ANGLE);
+  entity->cShape = std::make_shared<CShape>(RADIUS, RANDOM_VERTICES, COLOR, OUTLINE, OUTLINE_THICKNESS);
 }
 
 void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
