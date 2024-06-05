@@ -125,6 +125,8 @@ void Game::sMovement() {
       e->cShape->circle.setRotation(e->cTransform->angle);
     }
   }
+
+  // TODO: if the enemy hits the boundary, it should move in the opposite direction
 }
 
 void Game::sUserInput() {
