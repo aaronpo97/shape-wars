@@ -201,60 +201,53 @@ void Game::sEnemySpawner() {
 
 void Game::sCollision() {
 
-  /*
-   * @returns A bitset with the following values:
-   * 0 - top
-   * 1 - bottom
-   * 2 - left
-   * 3 - right
-   *
-   * If the entity is out of bounds, the corresponding bit will be set to 1.
-   */
+  enum Boundaries { TOP, BOTTOM, LEFT, RIGHT };
+
   auto detectOutOfBounds = [this](const std::shared_ptr<Entity> &entity) {
     const Vec2 &pos        = entity->cTransform->pos;
     const float radius     = entity->cShape->circle.getRadius();
     const auto &windowSize = m_window.getSize();
 
     std::bitset<4> collidesWithBoundary;
-    collidesWithBoundary.set(0, pos.y - radius < 0);            // top
-    collidesWithBoundary.set(1, pos.y + radius > windowSize.y); // bottom
-    collidesWithBoundary.set(2, pos.x - radius < 0);            // left
-    collidesWithBoundary.set(3, pos.x + radius > windowSize.x); // right
+    collidesWithBoundary.set(TOP, pos.y - radius < 0);
+    collidesWithBoundary.set(BOTTOM, pos.y + radius > windowSize.y);
+    collidesWithBoundary.set(LEFT, pos.x - radius < 0);
+    collidesWithBoundary.set(RIGHT, pos.x + radius > windowSize.x);
 
     return collidesWithBoundary;
   };
 
   auto enforcePlayerBounds = [this](const std::shared_ptr<Entity> &entity,
                                     const std::bitset<4>          &collides) {
-    if (collides[0]) { // collides with top
+    if (collides[TOP]) {
       entity->cTransform->pos.y = entity->cShape->circle.getRadius();
     }
-    if (collides[1]) { // collides with bottom
+    if (collides[BOTTOM]) {
       entity->cTransform->pos.y = m_window.getSize().y - entity->cShape->circle.getRadius();
     }
-    if (collides[2]) { // collides with left
+    if (collides[LEFT]) {
       entity->cTransform->pos.x = entity->cShape->circle.getRadius();
     }
-    if (collides[3]) { // collides with right
+    if (collides[RIGHT]) {
       entity->cTransform->pos.x = m_window.getSize().x - entity->cShape->circle.getRadius();
     }
   };
 
   auto enforceEnemyBounds = [this](const std::shared_ptr<Entity> &entity,
                                    const std::bitset<4>          &collides) {
-    if (collides[0]) { // collides with top
+    if (collides[TOP]) {
       entity->cTransform->pos.y = entity->cShape->circle.getRadius();
       entity->cTransform->velocity.y *= -1;
     }
-    if (collides[1]) { // collides with bottom
+    if (collides[BOTTOM]) {
       entity->cTransform->pos.y = m_window.getSize().y - entity->cShape->circle.getRadius();
       entity->cTransform->velocity.y *= -1;
     }
-    if (collides[2]) { // collides with left
+    if (collides[LEFT]) {
       entity->cTransform->pos.x = entity->cShape->circle.getRadius();
       entity->cTransform->velocity.x *= -1;
     }
-    if (collides[3]) { // collides with right
+    if (collides[RIGHT]) {
       entity->cTransform->pos.x = m_window.getSize().x - entity->cShape->circle.getRadius();
       entity->cTransform->velocity.x *= -1;
     }
@@ -267,20 +260,70 @@ void Game::sCollision() {
     }
   };
 
-  for (auto entity : m_entities.getEntities()) {
-    std::bitset<4> collidesWithBoundary = detectOutOfBounds(entity);
+  auto calculateCollisionBetweenEntities = [this](const std::shared_ptr<Entity> &entityA,
+                                                  const std::shared_ptr<Entity> &entityB) {
+    const Vec2 &centerPositionA = entityA->cTransform->pos;
+    const float radiusA         = entityA->cShape->circle.getRadius();
 
-    if (entity->tag() == EntityTags::Player) {
-      enforcePlayerBounds(entity, collidesWithBoundary);
+    const Vec2 &centerPositionB = entityB->cTransform->pos;
+    const float radiusB         = entityB->cShape->circle.getRadius();
+
+    const float dx = centerPositionB.x - centerPositionA.x;
+    const float dy = centerPositionB.y - centerPositionA.y;
+
+    /*
+    * Calculate the distance between the two entities using the Pythagorean theorem.
+
+    * The distance between two vectors can be visualized as the hypotenuse of a right triangle where `dx`
+    * and `dy` are the two sides of the triangle.
+    */
+    const float dv = sqrt(dx * dx + dy * dy);
+
+    /*
+     * If the distance between the two entities is less than or equal to the sum of their radii, they are
+     * colliding.
+     */
+    const bool collides = dv < (radiusA + radiusB);
+    return collides;
+  };
+
+  auto handlePlayerEnemyCollision = [this](const std::shared_ptr<Entity> &player,
+                                           const std::shared_ptr<Entity> &enemy) {};
+
+  auto handleBulletEnemyCollision = [this](const std::shared_ptr<Entity> &bullet,
+                                           const std::shared_ptr<Entity> &enemy) {};
+
+  const auto &playerEntities = m_entities.getEntities(EntityTags::Player);
+  const auto &enemyEntities  = m_entities.getEntities(EntityTags::Enemy);
+  const auto &bulletEntities = m_entities.getEntities(EntityTags::Bullet);
+
+  for (auto playerEntity : playerEntities) {
+    for (auto enemyEntity : enemyEntities) {
+      bool collision = calculateCollisionBetweenEntities(playerEntity, enemyEntity);
+      if (collision) {
+        handlePlayerEnemyCollision(playerEntity, enemyEntity);
+      }
     }
 
-    if (entity->tag() == EntityTags::Bullet) {
-      enforceBulletBounds(entity, collidesWithBoundary);
+    std::bitset<4> collidesWithBoundary = detectOutOfBounds(playerEntity);
+    enforcePlayerBounds(playerEntity, collidesWithBoundary);
+  }
+
+  for (auto enemyEntity : enemyEntities) {
+    std::bitset<4> collidesWithBoundary = detectOutOfBounds(enemyEntity);
+    enforceEnemyBounds(enemyEntity, collidesWithBoundary);
+  }
+
+  for (auto bulletEntity : bulletEntities) {
+    for (auto enemyEntity : enemyEntities) {
+      bool collision = calculateCollisionBetweenEntities(bulletEntity, enemyEntity);
+      if (collision) {
+        handleBulletEnemyCollision(bulletEntity, enemyEntity);
+      }
     }
 
-    if (entity->tag() == EntityTags::Enemy) {
-      enforceEnemyBounds(entity, collidesWithBoundary);
-    }
+    std::bitset<4> collidesWithBoundary = detectOutOfBounds(bulletEntity);
+    enforceBulletBounds(bulletEntity, collidesWithBoundary);
   }
 }
 
