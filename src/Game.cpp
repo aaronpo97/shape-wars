@@ -200,29 +200,86 @@ void Game::sEnemySpawner() {
 }
 
 void Game::sCollision() {
-  auto enforceBoundaries = [this](const std::shared_ptr<Entity> &entity) {
-    const sf::CircleShape &shape      = entity->cShape->circle;
-    const Vec2            &pos        = entity->cTransform->pos;
-    const float            radius     = shape.getRadius();
-    const auto             windowSize = m_window.getSize();
 
-    if (pos.x + radius > windowSize.x) {
-      entity->cTransform->pos.x = windowSize.x - radius;
+  /*
+   * @returns A bitset with the following values:
+   * 0 - top
+   * 1 - bottom
+   * 2 - left
+   * 3 - right
+   *
+   * If the entity is out of bounds, the corresponding bit will be set to 1.
+   */
+  auto detectOutOfBounds = [this](const std::shared_ptr<Entity> &entity) {
+    const Vec2 &pos        = entity->cTransform->pos;
+    const float radius     = entity->cShape->circle.getRadius();
+    const auto &windowSize = m_window.getSize();
+
+    std::bitset<4> collidesWithBoundary;
+    collidesWithBoundary.set(0, pos.y - radius < 0);            // top
+    collidesWithBoundary.set(1, pos.y + radius > windowSize.y); // bottom
+    collidesWithBoundary.set(2, pos.x - radius < 0);            // left
+    collidesWithBoundary.set(3, pos.x + radius > windowSize.x); // right
+
+    return collidesWithBoundary;
+  };
+
+  auto enforcePlayerBounds = [this](const std::shared_ptr<Entity> &entity,
+                                    const std::bitset<4>          &collides) {
+    if (collides[0]) { // collides with top
+      entity->cTransform->pos.y = entity->cShape->circle.getRadius();
     }
-    if (pos.x - radius < 0) {
-      entity->cTransform->pos.x = radius;
+    if (collides[1]) { // collides with bottom
+      entity->cTransform->pos.y = m_window.getSize().y - entity->cShape->circle.getRadius();
     }
-    if (pos.y + radius > windowSize.y) {
-      entity->cTransform->pos.y = windowSize.y - radius;
+    if (collides[2]) { // collides with left
+      entity->cTransform->pos.x = entity->cShape->circle.getRadius();
     }
-    if (pos.y - radius < 0) {
-      entity->cTransform->pos.y = radius;
+    if (collides[3]) { // collides with right
+      entity->cTransform->pos.x = m_window.getSize().x - entity->cShape->circle.getRadius();
     }
   };
 
-  for (auto e : m_entities.getEntities()) {
-    if (e->tag() != EntityTags::Bullet) {
-      enforceBoundaries(e);
+  auto enforceEnemyBounds = [this](const std::shared_ptr<Entity> &entity,
+                                   const std::bitset<4>          &collides) {
+    if (collides[0]) { // collides with top
+      entity->cTransform->pos.y = entity->cShape->circle.getRadius();
+      entity->cTransform->velocity.y *= -1;
+    }
+    if (collides[1]) { // collides with bottom
+      entity->cTransform->pos.y = m_window.getSize().y - entity->cShape->circle.getRadius();
+      entity->cTransform->velocity.y *= -1;
+    }
+    if (collides[2]) { // collides with left
+      entity->cTransform->pos.x = entity->cShape->circle.getRadius();
+      entity->cTransform->velocity.x *= -1;
+    }
+    if (collides[3]) { // collides with right
+      entity->cTransform->pos.x = m_window.getSize().x - entity->cShape->circle.getRadius();
+      entity->cTransform->velocity.x *= -1;
+    }
+  };
+
+  auto enforceBulletBounds = [this](const std::shared_ptr<Entity> &entity,
+                                    const std::bitset<4>          &collides) {
+    if (collides.any()) {
+      entity->destroy();
+    }
+  };
+
+  for (auto entity : m_entities.getEntities()) {
+    std::bitset<4> collidesWithBoundary = detectOutOfBounds(entity);
+
+    if (entity->tag() == EntityTags::Player) {
+      enforcePlayerBounds(entity, collidesWithBoundary);
+    }
+
+    if (entity->tag() == EntityTags::Bullet) {
+      enforceBulletBounds(entity, collidesWithBoundary);
+    }
+
+    if (entity->tag() == EntityTags::Enemy) {
+      enforceEnemyBounds(entity, collidesWithBoundary);
     }
   }
 }

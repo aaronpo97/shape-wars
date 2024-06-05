@@ -1,4 +1,5 @@
 #include "../includes/Entity.h"
+#include <iostream>
 
 bool Entity::isActive() const {
   return m_active;
@@ -13,5 +14,5 @@ size_t Entity::id() const {
 }
 
 void Entity::destroy() {
-  m_active = false;
+  // m_active = false;
 }
