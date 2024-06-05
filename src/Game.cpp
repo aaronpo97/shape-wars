@@ -117,16 +117,13 @@ void Game::sMovement() {
       // Rotates the entity
       e->cTransform->angle += 2.0f;
       e->cShape->circle.setRotation(e->cTransform->angle);
-      return;
+    } else {
+      // Updates the position of the player
+      m_player->cTransform->pos += playerVelocity;
+      // Rotates the player
+      e->cTransform->angle += 2.0f;
+      e->cShape->circle.setRotation(e->cTransform->angle);
     }
-
-    // Updates the position of the player
-    m_player->cTransform->pos += playerVelocity;
-    // Rotates the player
-    e->cTransform->angle += 2.0f;
-    e->cShape->circle.setRotation(e->cTransform->angle);
-
-    return;
   }
 }
 
@@ -224,8 +221,6 @@ void Game::sCollision() {
   for (auto e : m_entities.getEntities()) {
     if (e->tag() != EntityTags::Bullet) {
       enforceBoundaries(e);
-
-      return;
     }
   }
 }

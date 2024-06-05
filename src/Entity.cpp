@@ -9,7 +9,7 @@ const std::string &Entity::tag() const {
 }
 
 size_t Entity::id() const {
-  return size_t();
+  return m_id;
 }
 
 void Entity::destroy() {
