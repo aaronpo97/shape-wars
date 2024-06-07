@@ -4,18 +4,12 @@
 
 #include <iostream>
 
-EntityManager::EntityManager() {}
+EntityManager::EntityManager() :
+    m_totalEntities(0) {}
 
 std::shared_ptr<Entity> EntityManager::addEntity(const std::string &tag) {
-
-  auto e = std::shared_ptr<Entity>(new Entity(m_totalEntries++, tag));
-
-  // add it to the vector of all entities
-  m_entities.push_back(e);
-
-  // add it to the map of tag->entity_vector, if the tag doesn't exist, it will create one
-  m_entityMap[tag].push_back(e);
-
+  auto e = std::shared_ptr<Entity>(new Entity(m_totalEntities++, tag));
+  m_toAdd.push_back(e);
   return e;
 }
 
@@ -27,18 +21,23 @@ EntityVector &EntityManager::getEntities(const std::string &tag) {
 }
 
 void EntityManager::update() {
+  auto removeDeadEntities = [](EntityVector &entityVec) {
+    entityVec.erase(std::remove_if(entityVec.begin(), entityVec.end(),
+                                   [](auto &entity) { return !entity->isActive(); }),
+                    entityVec.end());
+  };
+
   // add all entities in the `m_toAdd` vector to the main entity vector
   for (auto &e : m_toAdd) {
     m_entities.push_back(e);
     m_entityMap[e->tag()].push_back(e);
   }
 
-  for (auto e : m_entities) {
-    if (!e->isActive()) {
-      m_entities.erase(std::remove(m_entities.begin(), m_entities.end(), e), m_entities.end());
-      m_entityMap[e->tag()].erase(
-          std::remove(m_entityMap[e->tag()].begin(), m_entityMap[e->tag()].end(), e),
-          m_entityMap[e->tag()].end());
-    }
+  // Remove dead entities from the vector of all entities
+  removeDeadEntities(m_entities);
+  // Remove dead entities from each vector in the entity map
+  for (auto &[tag, entityVec] : m_entityMap) {
+    removeDeadEntities(entityVec);
   }
+  m_toAdd.clear();
 }

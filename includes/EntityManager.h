@@ -22,10 +22,10 @@ class EntityManager {
   EntityVector m_toAdd;
   EntityMap    m_entityMap;
   /*
-   *    `m_totalEntries` is not the amount of entities that are alive, but rather the
+   *    `m_totalEntities` is not the amount of entities that are alive, but rather the
    *    total amount of entities that are created.
    */
-  size_t m_totalEntries = 0;
+  size_t m_totalEntities = 0;
 
 public:
   EntityManager();

@@ -1,6 +1,7 @@
 #include "../includes/Game.h"
 #include "../includes/Components.h"
 #include "../includes/Tags.h"
+#include "./CollisionHelpers.h"
 #include <fstream>
 #include <iostream>
 
@@ -44,7 +45,7 @@ void Game::init(const std::string &path) {
   m_enemyConfig.OB   = 255;
   m_enemyConfig.OT   = 3;
   m_enemyConfig.VMIN = 3;
-  m_enemyConfig.VMAX = 10;
+  m_enemyConfig.VMAX = 6;
   m_enemyConfig.L    = 3;
   m_enemyConfig.SI   = 8;
   m_enemyConfig.SMIN = 90;
@@ -63,6 +64,8 @@ void Game::init(const std::string &path) {
   m_bulletConfig.V  = 150;
   m_bulletConfig.L  = 4;
   m_bulletConfig.S  = 9;
+
+  m_font.loadFromFile("../assets/fonts/Roboto.ttf");
 
   m_window.create(sf::VideoMode(1600, 900), "Geometry Wars");
 
@@ -176,6 +179,18 @@ void Game::sRender() {
 
   m_window.clear();
 
+  // display the score
+  std::string scoreText = "Score: " + std::to_string(m_score);
+
+  sf::Text text;
+  text.setFont(m_font);
+  text.setString(scoreText);
+  text.setCharacterSize(32);
+  text.setFillColor(sf::Color::White);
+  text.setPosition(10, 10);
+
+  m_window.draw(text);
+
   for (auto e : m_entities.getEntities()) {
     e->cShape->circle.setPosition(e->cTransform->pos.x, e->cTransform->pos.y);
     m_window.draw(e->cShape->circle);
@@ -201,129 +216,46 @@ void Game::sEnemySpawner() {
 
 void Game::sCollision() {
 
-  enum Boundaries { TOP, BOTTOM, LEFT, RIGHT };
-
-  auto detectOutOfBounds = [this](const std::shared_ptr<Entity> &entity) {
-    const Vec2 &pos        = entity->cTransform->pos;
-    const float radius     = entity->cShape->circle.getRadius();
-    const auto &windowSize = m_window.getSize();
-
-    std::bitset<4> collidesWithBoundary;
-    collidesWithBoundary.set(TOP, pos.y - radius < 0);
-    collidesWithBoundary.set(BOTTOM, pos.y + radius > windowSize.y);
-    collidesWithBoundary.set(LEFT, pos.x - radius < 0);
-    collidesWithBoundary.set(RIGHT, pos.x + radius > windowSize.x);
-
-    return collidesWithBoundary;
-  };
-
-  auto enforcePlayerBounds = [this](const std::shared_ptr<Entity> &entity,
-                                    const std::bitset<4>          &collides) {
-    if (collides[TOP]) {
-      entity->cTransform->pos.y = entity->cShape->circle.getRadius();
-    }
-    if (collides[BOTTOM]) {
-      entity->cTransform->pos.y = m_window.getSize().y - entity->cShape->circle.getRadius();
-    }
-    if (collides[LEFT]) {
-      entity->cTransform->pos.x = entity->cShape->circle.getRadius();
-    }
-    if (collides[RIGHT]) {
-      entity->cTransform->pos.x = m_window.getSize().x - entity->cShape->circle.getRadius();
-    }
-  };
-
-  auto enforceEnemyBounds = [this](const std::shared_ptr<Entity> &entity,
-                                   const std::bitset<4>          &collides) {
-    if (collides[TOP]) {
-      entity->cTransform->pos.y = entity->cShape->circle.getRadius();
-      entity->cTransform->velocity.y *= -1;
-    }
-    if (collides[BOTTOM]) {
-      entity->cTransform->pos.y = m_window.getSize().y - entity->cShape->circle.getRadius();
-      entity->cTransform->velocity.y *= -1;
-    }
-    if (collides[LEFT]) {
-      entity->cTransform->pos.x = entity->cShape->circle.getRadius();
-      entity->cTransform->velocity.x *= -1;
-    }
-    if (collides[RIGHT]) {
-      entity->cTransform->pos.x = m_window.getSize().x - entity->cShape->circle.getRadius();
-      entity->cTransform->velocity.x *= -1;
-    }
-  };
-
-  auto enforceBulletBounds = [this](const std::shared_ptr<Entity> &entity,
-                                    const std::bitset<4>          &collides) {
-    if (collides.any()) {
-      entity->destroy();
-    }
-  };
-
-  auto calculateCollisionBetweenEntities = [this](const std::shared_ptr<Entity> &entityA,
-                                                  const std::shared_ptr<Entity> &entityB) {
-    const Vec2 &centerPositionA = entityA->cTransform->pos;
-    const float radiusA         = entityA->cShape->circle.getRadius();
-
-    const Vec2 &centerPositionB = entityB->cTransform->pos;
-    const float radiusB         = entityB->cShape->circle.getRadius();
-
-    const float dx = centerPositionB.x - centerPositionA.x;
-    const float dy = centerPositionB.y - centerPositionA.y;
-
-    /*
-    * Calculate the distance between the two entities using the Pythagorean theorem.
-
-    * The distance between two vectors can be visualized as the hypotenuse of a right triangle where `dx`
-    * and `dy` are the two sides of the triangle.
-    */
-    const float dv = sqrt(dx * dx + dy * dy);
-
-    /*
-     * If the distance between the two entities is less than or equal to the sum of their radii, they are
-     * colliding.
-     */
-    const bool collides = dv < (radiusA + radiusB);
-    return collides;
-  };
-
-  auto handlePlayerEnemyCollision = [this](const std::shared_ptr<Entity> &player,
-                                           const std::shared_ptr<Entity> &enemy) {};
-
-  auto handleBulletEnemyCollision = [this](const std::shared_ptr<Entity> &bullet,
-                                           const std::shared_ptr<Entity> &enemy) {};
-
   const auto &playerEntities = m_entities.getEntities(EntityTags::Player);
   const auto &enemyEntities  = m_entities.getEntities(EntityTags::Enemy);
   const auto &bulletEntities = m_entities.getEntities(EntityTags::Bullet);
 
   for (auto playerEntity : playerEntities) {
     for (auto enemyEntity : enemyEntities) {
-      bool collision = calculateCollisionBetweenEntities(playerEntity, enemyEntity);
+      bool collision = CollisionHelpers::calculateCollisionBetweenEntities(playerEntity, enemyEntity);
       if (collision) {
-        handlePlayerEnemyCollision(playerEntity, enemyEntity);
+        playerEntity->destroy();
+        m_score = m_score > 0 ? m_score - 1 : 0;
+        spawnPlayer();
       }
     }
 
-    std::bitset<4> collidesWithBoundary = detectOutOfBounds(playerEntity);
-    enforcePlayerBounds(playerEntity, collidesWithBoundary);
+    std::bitset<4> collidesWithBoundary =
+        CollisionHelpers::detectOutOfBounds(playerEntity, m_window.getSize());
+    CollisionHelpers::enforcePlayerBounds(playerEntity, collidesWithBoundary, m_window.getSize());
   }
 
   for (auto enemyEntity : enemyEntities) {
-    std::bitset<4> collidesWithBoundary = detectOutOfBounds(enemyEntity);
-    enforceEnemyBounds(enemyEntity, collidesWithBoundary);
+    std::bitset<4> collidesWithBoundary =
+        CollisionHelpers::detectOutOfBounds(enemyEntity, m_window.getSize());
+    CollisionHelpers::enforceEnemyBounds(enemyEntity, collidesWithBoundary, m_window.getSize());
   }
 
   for (auto bulletEntity : bulletEntities) {
+
     for (auto enemyEntity : enemyEntities) {
-      bool collision = calculateCollisionBetweenEntities(bulletEntity, enemyEntity);
+      bool collision = CollisionHelpers::calculateCollisionBetweenEntities(bulletEntity, enemyEntity);
       if (collision) {
-        handleBulletEnemyCollision(bulletEntity, enemyEntity);
+        bulletEntity->destroy();
+        enemyEntity->destroy();
+        m_score = m_score + 2;
       }
     }
 
-    std::bitset<4> collidesWithBoundary = detectOutOfBounds(bulletEntity);
-    enforceBulletBounds(bulletEntity, collidesWithBoundary);
+    std::bitset<4> collidesWithBoundary =
+        CollisionHelpers::detectOutOfBounds(bulletEntity, m_window.getSize());
+
+    CollisionHelpers::enforceBulletBounds(bulletEntity, collidesWithBoundary);
   }
 }
 
@@ -398,7 +330,7 @@ void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos) {
                                       static_cast<float>(m_bulletConfig.S * difference.y));
 
   auto bullet        = m_entities.addEntity(EntityTags::Bullet);
-  bullet->cTransform = std::make_shared<CTransform>(entity->cTransform->pos, Vec2(1, 1), 0);
+  bullet->cTransform = std::make_shared<CTransform>(entity->cTransform->pos, VELOCITY, 0);
   bullet->cShape = std::make_shared<CShape>(SHAPE_RADIUS, VERTICES, COLOR, OUTLINE, OUTLINE_THICKNESS);
 }
 
