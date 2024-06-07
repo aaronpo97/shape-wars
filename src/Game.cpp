@@ -85,16 +85,16 @@ void Game::run() {
       sEnemySpawner();
       sMovement();
       sCollision();
-      sUserInput();
     }
 
+    sUserInput();
     sRender();
     m_currentFrame++;
   }
 }
 
 void Game::setPaused(bool paused) {
-  // Set the game to paused or resumed
+  m_paused = paused;
 }
 
 void Game::sMovement() {
@@ -141,10 +141,19 @@ void Game::sUserInput() {
     auto       key_code     = event.key.code;
 
     if (key_pressed) {
-      m_player->cInput->up    = key_code == sf::Keyboard::W ? true : m_player->cInput->up;
-      m_player->cInput->left  = key_code == sf::Keyboard::A ? true : m_player->cInput->left;
-      m_player->cInput->down  = key_code == sf::Keyboard::S ? true : m_player->cInput->down;
-      m_player->cInput->right = key_code == sf::Keyboard::D ? true : m_player->cInput->right;
+      bool &up    = m_player->cInput->up;
+      bool &left  = m_player->cInput->left;
+      bool &down  = m_player->cInput->down;
+      bool &right = m_player->cInput->right;
+
+      up    = (key_code == sf::Keyboard::W) || up;
+      left  = (key_code == sf::Keyboard::A) || left;
+      down  = (key_code == sf::Keyboard::S) || down;
+      right = (key_code == sf::Keyboard::D) || right;
+
+      if (key_code == sf::Keyboard::P) {
+        m_paused ? setPaused(false) : setPaused(true);
+      }
     }
 
     if (key_released) {
@@ -154,7 +163,8 @@ void Game::sUserInput() {
       m_player->cInput->right = key_code == sf::Keyboard::D ? false : m_player->cInput->right;
     }
 
-    const auto left_mouse_pressed = event.type == sf::Event::MouseButtonPressed;
+    const auto left_mouse_pressed =
+        event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left;
 
     if (left_mouse_pressed) {
       const Vec2 mousePos = {static_cast<float>(event.mouseButton.x),
