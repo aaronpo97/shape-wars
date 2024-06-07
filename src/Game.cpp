@@ -335,23 +335,31 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
 
 void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos) {
 
-  // Calculate the difference between the mouse position and the entity position
-  auto difference = Vec2(static_cast<float>(mousePos.x - entity->cTransform->pos.x),
-                         static_cast<float>(mousePos.y - entity->cTransform->pos.y));
+  /*
+   * This Difference is used to determine the direction of the bullet.
+   * Moves to left:   `x < 0`
+   * Moves to right:  `x > 0`
+   * Moves up:        `y < 0`
+   * Moves down:      `y > 0`
+   */
+  Vec2 difference = Vec2(static_cast<float>(mousePos.x - entity->cTransform->pos.x),
+                         static_cast<float>(mousePos.y - entity->cTransform->pos.y))
+                        .normalize();
 
-  difference.normalize();
+  const Vec2 VELOCITY = Vec2(static_cast<float>(m_bulletConfig.S * difference.x),
+                             static_cast<float>(m_bulletConfig.S * difference.y));
 
+  const int       SHAPE_RADIUS      = m_bulletConfig.SR;
+  const int       OUTLINE_THICKNESS = m_bulletConfig.OT;
+  const sf::Color COLOR             = sf::Color(m_bulletConfig.FR, m_bulletConfig.FG, m_bulletConfig.FB);
+  const sf::Color OUTLINE           = sf::Color(m_bulletConfig.OR, m_bulletConfig.OG, m_bulletConfig.OB);
+  const int       VERTICES          = 10;
+  const Vec2     &STARTING_POSITION = entity->cTransform->pos;
+  const int       ANGLE             = 0;
   // Spawn a bullet entity from a given entity
-  const int  SHAPE_RADIUS      = m_bulletConfig.SR;
-  const int  OUTLINE_THICKNESS = m_bulletConfig.OT;
-  const auto COLOR             = sf::Color(m_bulletConfig.FR, m_bulletConfig.FG, m_bulletConfig.FB);
-  const auto OUTLINE           = sf::Color(m_bulletConfig.OR, m_bulletConfig.OG, m_bulletConfig.OB);
-  const int  VERTICES          = 10;
-  const auto VELOCITY          = Vec2(static_cast<float>(m_bulletConfig.S * difference.x),
-                                      static_cast<float>(m_bulletConfig.S * difference.y));
 
-  auto bullet        = m_entities.addEntity(EntityTags::Bullet);
-  bullet->cTransform = std::make_shared<CTransform>(entity->cTransform->pos, VELOCITY, 0);
+  std::shared_ptr<Entity> bullet = m_entities.addEntity(EntityTags::Bullet);
+  bullet->cTransform             = std::make_shared<CTransform>(STARTING_POSITION, VELOCITY, ANGLE);
   bullet->cShape = std::make_shared<CShape>(SHAPE_RADIUS, VERTICES, COLOR, OUTLINE, OUTLINE_THICKNESS);
 }
 

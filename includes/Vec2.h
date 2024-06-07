@@ -20,7 +20,7 @@ public:
   void operator*=(const float val);
   void operator/=(const float val);
 
-  void  normalize();
+  Vec2  normalize();
   float length() const;
 };
 

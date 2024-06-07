@@ -52,10 +52,13 @@ float Vec2::length() const {
   return std::sqrt(x * x + y * y);
 }
 
-void Vec2::normalize() {
+// the normalize function will make the vector a unit vector (length of 1) pointing in the same direction
+Vec2 Vec2::normalize() {
   float len = length();
   if (len > 0) { // Avoid division by zero
     x /= len;
     y /= len;
   }
+
+  return *this;
 }
