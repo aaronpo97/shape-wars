@@ -1,16 +1,10 @@
 
-#ifndef COLLISION_HELPERS_H
-#define COLLISION_HELPERS_H
-
-#include "../includes/Entity.h"
-#include "../includes/EntityManager.h"
+#include "../includes/CollisionHelpers.h"
 #include <bitset>
-#include <iostream>
 
 namespace CollisionHelpers {
 
   enum Boundaries { TOP, BOTTOM, LEFT, RIGHT };
-
   std::bitset<4> detectOutOfBounds(const std::shared_ptr<Entity> &entity,
                                    const sf::Vector2u            &window_size) {
     const Vec2 &pos    = entity->cTransform->pos;
@@ -98,5 +92,3 @@ namespace CollisionHelpers {
   }
 
 } // namespace CollisionHelpers
-
-#endif // COLLISION_HELPERS_H

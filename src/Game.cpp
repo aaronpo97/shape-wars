@@ -1,7 +1,7 @@
 #include "../includes/Game.h"
+#include "../includes/CollisionHelpers.h"
 #include "../includes/Components.h"
 #include "../includes/Tags.h"
-#include "./CollisionHelpers.h"
 #include <fstream>
 #include <iostream>
 
