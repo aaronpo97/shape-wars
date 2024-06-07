@@ -136,9 +136,16 @@ void Game::sUserInput() {
   sf::Event event;
   while (m_window.pollEvent(event)) {
 
-    const auto key_released = event.type == sf::Event::KeyReleased;
-    const auto key_pressed  = event.type == sf::Event::KeyPressed;
-    auto       key_code     = event.key.code;
+    const bool key_released    = event.type == sf::Event::KeyReleased;
+    const bool key_pressed     = event.type == sf::Event::KeyPressed;
+    const bool mouse_pressed   = event.type == sf::Event::MouseButtonPressed;
+    const bool close_triggered = event.type == sf::Event::Closed;
+
+    const sf::Keyboard::Key key_code = event.key.code;
+
+    const bool left_mouse_pressed = mouse_pressed && event.mouseButton.button == sf::Mouse::Left;
+
+    const bool right_mouse_pressed = mouse_pressed && event.mouseButton.button == sf::Mouse::Right;
 
     if (key_pressed) {
       bool &up    = m_player->cInput->up;
@@ -163,17 +170,11 @@ void Game::sUserInput() {
       m_player->cInput->right = key_code == sf::Keyboard::D ? false : m_player->cInput->right;
     }
 
-    const auto left_mouse_pressed =
-        event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left;
-
     if (left_mouse_pressed) {
-      const Vec2 mousePos = {static_cast<float>(event.mouseButton.x),
-                             static_cast<float>(event.mouseButton.y)};
-
       m_player->cInput->shoot = true;
     }
 
-    if (event.type == sf::Event::Closed) {
+    if (close_triggered) {
       m_running = false;
     }
   }
