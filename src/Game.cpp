@@ -287,6 +287,7 @@ void Game::spawnPlayer() {
 // TODO finish adding all the properties of the enemy using the values from the config file
 void Game::spawnEnemy() {
 
+  srand(time(NULL));
   /*
     - Red
     - Orange
@@ -296,26 +297,35 @@ void Game::spawnEnemy() {
     - Indigo
     - Violet
   */
-  std::array<sf::Color, 7> COLORS = {
+  const std::array<sf::Color, 7> COLORS = {
       sf::Color::Red,  sf::Color(255, 165, 0), sf::Color::Yellow,        sf::Color::Green,
       sf::Color::Blue, sf::Color(75, 0, 130),  sf::Color(238, 130, 238),
   };
+  const int       MAX_VERTICES      = m_enemyConfig.VMAX;
+  const int       MIN_VERTICES      = m_enemyConfig.VMIN;
+  const int       RADIUS            = m_enemyConfig.CR;
+  const int       OUTLINE_THICKNESS = m_enemyConfig.OT;
+  const float     RANDOM_ANGLE      = rand() % 360;
+  const float     RANDOM_VERTICES   = rand() % MAX_VERTICES + MIN_VERTICES;
+  const sf::Color COLOR             = COLORS[rand() % 7];
+  const sf::Color OUTLINE           = sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OB);
 
-  int       MAX_VERTICES      = m_enemyConfig.VMAX;
-  int       MIN_VERTICES      = m_enemyConfig.VMIN;
-  int       RADIUS            = m_enemyConfig.CR;
-  int       OUTLINE_THICKNESS = m_enemyConfig.OT;
-  float     RANDOM_X          = rand() % m_window.getSize().x;
-  float     RANDOM_Y          = rand() % m_window.getSize().y;
-  float     RANDOM_ANGLE      = rand() % 360;
-  float     RANDOM_VERTICES   = rand() % MAX_VERTICES + MIN_VERTICES;
-  sf::Color COLOR             = COLORS[rand() % 7];
-  sf::Color OUTLINE           = sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OB);
+  const float RANDOM_POS_X = rand() % m_window.getSize().x;
+  const float RANDOM_POS_Y = rand() % m_window.getSize().y;
+  const Vec2  RANDOM_POS   = Vec2(RANDOM_POS_X, RANDOM_POS_Y);
+
+  int random_number = rand() % 2;
+
+  const float RANDOM_VEL_X = (random_number == 0) ? -1 : 1;
+  const float RANDOM_VEL_Y = (random_number == 0) ? -1 : 1;
+  const Vec2  RANDOM_VEL   = Vec2(RANDOM_VEL_X, RANDOM_VEL_Y);
 
   auto entity = m_entities.addEntity(EntityTags::Enemy);
 
   m_lastEnemySpawnTime = m_currentFrame;
-  entity->cTransform = std::make_shared<CTransform>(Vec2(RANDOM_X, RANDOM_Y), Vec2(1, 1), RANDOM_ANGLE);
+  entity->cTransform   = std::make_shared<CTransform>(Vec2(RANDOM_POS_X, RANDOM_POS_Y),
+                                                      Vec2(RANDOM_VEL_X, RANDOM_VEL_Y), RANDOM_ANGLE);
+
   entity->cShape = std::make_shared<CShape>(RADIUS, RANDOM_VERTICES, COLOR, OUTLINE, OUTLINE_THICKNESS);
 }
 

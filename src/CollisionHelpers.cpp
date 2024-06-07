@@ -59,7 +59,7 @@ namespace CollisionHelpers {
 
   void enforceBulletBounds(const std::shared_ptr<Entity> &entity, const std::bitset<4> &collides) {
     if (collides.any()) {
-      std::cout << "Bullet out of bounds" << std::endl;
+
       entity->destroy();
     }
   }
