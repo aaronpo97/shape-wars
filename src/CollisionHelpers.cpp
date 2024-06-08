@@ -22,37 +22,41 @@ namespace CollisionHelpers {
   void enforcePlayerBounds(const std::shared_ptr<Entity> &entity,
                            const std::bitset<4>          &collides,
                            const sf::Vector2u            &window_size) {
+
+    const float radius = entity->cShape->circle.getRadius();
     if (collides[TOP]) {
-      entity->cTransform->pos.y = entity->cShape->circle.getRadius();
+      entity->cTransform->pos.y = radius;
     }
     if (collides[BOTTOM]) {
-      entity->cTransform->pos.y = window_size.y - entity->cShape->circle.getRadius();
+      entity->cTransform->pos.y = window_size.y - radius;
     }
     if (collides[LEFT]) {
-      entity->cTransform->pos.x = entity->cShape->circle.getRadius();
+      entity->cTransform->pos.x = radius;
     }
     if (collides[RIGHT]) {
-      entity->cTransform->pos.x = window_size.x - entity->cShape->circle.getRadius();
+      entity->cTransform->pos.x = window_size.x - radius;
     }
   }
 
   void enforceEnemyBounds(const std::shared_ptr<Entity> &entity,
                           const std::bitset<4>          &collides,
                           const sf::Vector2u            &window_size) {
+
+    const float radius = entity->cShape->circle.getRadius();
     if (collides[TOP]) {
-      entity->cTransform->pos.y = entity->cShape->circle.getRadius();
+      entity->cTransform->pos.y = radius;
       entity->cTransform->velocity.y *= -1;
     }
     if (collides[BOTTOM]) {
-      entity->cTransform->pos.y = window_size.y - entity->cShape->circle.getRadius();
+      entity->cTransform->pos.y = window_size.y - radius;
       entity->cTransform->velocity.y *= -1;
     }
     if (collides[LEFT]) {
-      entity->cTransform->pos.x = entity->cShape->circle.getRadius();
+      entity->cTransform->pos.x = radius;
       entity->cTransform->velocity.x *= -1;
     }
     if (collides[RIGHT]) {
-      entity->cTransform->pos.x = window_size.x - entity->cShape->circle.getRadius();
+      entity->cTransform->pos.x = window_size.x - radius;
       entity->cTransform->velocity.x *= -1;
     }
   }
