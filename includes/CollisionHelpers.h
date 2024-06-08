@@ -19,7 +19,8 @@ namespace CollisionHelpers {
                           const std::bitset<4>          &collides,
                           const sf::Vector2u            &window_size);
 
-  void enforceBulletBounds(const std::shared_ptr<Entity> &entity, const std::bitset<4> &collides);
+  void enforceBulletBounds(const std::shared_ptr<Entity> &entity,
+                           const std::bitset<4>          &collides);
 
   bool calculateCollisionBetweenEntities(const std::shared_ptr<Entity> &entityA,
                                          const std::shared_ptr<Entity> &entityB);

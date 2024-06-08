@@ -62,7 +62,8 @@ namespace CollisionHelpers {
     }
   }
 
-  void enforceBulletBounds(const std::shared_ptr<Entity> &entity, const std::bitset<4> &collides) {
+  void enforceBulletBounds(const std::shared_ptr<Entity> &entity,
+                           const std::bitset<4>          &collides) {
     if (collides.any()) {
 
       entity->destroy();
@@ -83,16 +84,18 @@ namespace CollisionHelpers {
     /*
     * Calculate the distance between the two entities using the Pythagorean theorem.
 
-    * The distance between two vectors can be visualized as the hypotenuse of a right triangle where `dx`
+    * The distance between two vectors can be visualized as the hypotenuse of a right
+    triangle where `dx`
     * and `dy` are the two sides of the triangle.
     */
     const float dv = MathHelpers::pythagoras(dx, dy);
 
     /*
-     * If the distance between the two entities is less than or equal to the sum of their radii, they are
-     * colliding.
+     * If the distance between the two entities is less than or equal to the sum of their
+     * radii, they are colliding.
      */
     const bool collides = dv < (radiusA + radiusB);
+
     return collides;
   }
 

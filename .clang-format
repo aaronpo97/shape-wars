@@ -6,4 +6,4 @@ AllowShortFunctionsOnASingleLine: Empty
 BreakConstructorInitializers: AfterColon
 PackConstructorInitializers: NextLineOnly
 NamespaceIndentation: All
-ColumnLimit: 105
+ColumnLimit: 90

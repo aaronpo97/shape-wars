@@ -59,28 +59,31 @@ void Vec2Test::test_add() {
 
 void Vec2Test::test_subtract() {
   std::cout << "Vec2::operator- test" << std::endl << std::endl << std::endl;
-  TEST::when("Subtracting two vectors, it returns a new vector with the correct difference", []() {
-    Vec2 vec1(3, 4);
-    Vec2 vec2(1, 2);
+  TEST::when(
+      "Subtracting two vectors, it returns a new vector with the correct difference",
+      []() {
+        Vec2 vec1(3, 4);
+        Vec2 vec2(1, 2);
 
-    Vec2 result = vec1 - vec2;
-    TEST::assertTrue(result.x == 2 && result.y == 2);
-  });
+        Vec2 result = vec1 - vec2;
+        TEST::assertTrue(result.x == 2 && result.y == 2);
+      });
 
   std::cout << "Vec2::operator- passed" << std::endl;
 }
 
 void Vec2Test::test_multiply() {
   std::cout << "Vec2::operator* test" << std::endl << std::endl << std::endl;
-  TEST::when("Multiplying a vector by a scalar, it returns a new vector with each component "
-             "multiplied by the scalar",
-             []() {
-               Vec2  vec(2, 3);
-               float scalar = 2;
+  TEST::when(
+      "Multiplying a vector by a scalar, it returns a new vector with each component "
+      "multiplied by the scalar",
+      []() {
+        Vec2  vec(2, 3);
+        float scalar = 2;
 
-               Vec2 result = vec * scalar;
-               TEST::assertTrue(result.x == 4 && result.y == 6);
-             });
+        Vec2 result = vec * scalar;
+        TEST::assertTrue(result.x == 4 && result.y == 6);
+      });
 
   std::cout << "Vec2::operator* passed" << std::endl;
 }
@@ -115,12 +118,13 @@ void Vec2Test::test_length() {
 
 void Vec2Test::test_normalize() {
   std::cout << "Vec2::normalize test" << std::endl << std::endl << std::endl;
-  TEST::when("Normalizing a vector, it returns a unit vector in the same direction", []() {
-    Vec2 vec(3, 4);
+  TEST::when("Normalizing a vector, it returns a unit vector in the same direction",
+             []() {
+               Vec2 vec(3, 4);
 
-    vec.normalize();
-    TEST::assertTrue(vec.length() == 1);
-  });
+               vec.normalize();
+               TEST::assertTrue(vec.length() == 1);
+             });
 
   std::cout << "Vec2::normalize passed" << std::endl;
 }
@@ -140,13 +144,14 @@ void Vec2Test::test_increment_assignment() {
 
 void Vec2Test::test_decrement_assignment() {
   std::cout << "Vec2::operator-= test" << std::endl << std::endl << std::endl;
-  TEST::when("Decrementing a vector by another vector, it returns the correct difference", []() {
-    Vec2 vec1(3, 4);
-    Vec2 vec2(1, 2);
+  TEST::when("Decrementing a vector by another vector, it returns the correct difference",
+             []() {
+               Vec2 vec1(3, 4);
+               Vec2 vec2(1, 2);
 
-    vec1 -= vec2;
-    TEST::assertTrue(vec1.x == 2 && vec1.y == 2);
-  });
+               vec1 -= vec2;
+               TEST::assertTrue(vec1.x == 2 && vec1.y == 2);
+             });
 
   std::cout << "Vec2::operator-= passed" << std::endl;
 }

@@ -16,17 +16,22 @@ void Game::init(const std::string &path) {
   // use the premade PlayerConfig, EnemyConfig, and BulletConfig structs
   //   std::ifstream fin(path);
 
-  //   fin >> m_playerConfig.SR >> m_playerConfig.CR >> m_playerConfig.FR >> m_playerConfig.FG >>
-  //       m_playerConfig.FB >> m_playerConfig.OR >> m_playerConfig.OG >> m_playerConfig.OB >>
-  //       m_playerConfig.OT >> m_playerConfig.V >> m_playerConfig.S;
+  //   fin >> m_playerConfig.SR >> m_playerConfig.CR >> m_playerConfig.FR >>
+  //   m_playerConfig.FG >>
+  //       m_playerConfig.FB >> m_playerConfig.OR >> m_playerConfig.OG >>
+  //       m_playerConfig.OB >> m_playerConfig.OT >> m_playerConfig.V >> m_playerConfig.S;
 
-  //   fin >> m_enemyConfig.SR >> m_enemyConfig.CR >> m_enemyConfig.OR >> m_enemyConfig.OG >>
-  //       m_enemyConfig.OB >> m_enemyConfig.OT >> m_enemyConfig.VMIN >> m_enemyConfig.VMAX >>
-  //       m_enemyConfig.L >> m_enemyConfig.SI >> m_enemyConfig.SMIN >> m_enemyConfig.SMAX;
+  //   fin >> m_enemyConfig.SR >> m_enemyConfig.CR >> m_enemyConfig.OR >> m_enemyConfig.OG
+  //   >>
+  //       m_enemyConfig.OB >> m_enemyConfig.OT >> m_enemyConfig.VMIN >>
+  //       m_enemyConfig.VMAX >> m_enemyConfig.L >> m_enemyConfig.SI >> m_enemyConfig.SMIN
+  //       >> m_enemyConfig.SMAX;
 
-  //   fin >> m_bulletConfig.SR >> m_bulletConfig.CR >> m_bulletConfig.FR >> m_bulletConfig.FG >>
-  //       m_bulletConfig.FB >> m_bulletConfig.OR >> m_bulletConfig.OG >> m_bulletConfig.OB >>
-  //       m_bulletConfig.OT >> m_bulletConfig.V >> m_bulletConfig.L >> m_bulletConfig.S;
+  //   fin >> m_bulletConfig.SR >> m_bulletConfig.CR >> m_bulletConfig.FR >>
+  //   m_bulletConfig.FG >>
+  //       m_bulletConfig.FB >> m_bulletConfig.OR >> m_bulletConfig.OG >>
+  //       m_bulletConfig.OB >> m_bulletConfig.OT >> m_bulletConfig.V >> m_bulletConfig.L
+  //       >> m_bulletConfig.S;
 
   m_playerConfig.SR = 32;
   m_playerConfig.CR = 32;
@@ -147,16 +152,19 @@ void Game::sUserInput() {
   sf::Event event;
 
   while (m_window.pollEvent(event)) {
-    const bool key_released          = event.type == sf::Event::KeyReleased;
-    const bool key_pressed           = event.type == sf::Event::KeyPressed;
-    const bool mouse_pressed         = event.type == sf::Event::MouseButtonPressed;
-    const bool close_triggered       = event.type == sf::Event::Closed;
-    const bool left_mouse_pressed    = mouse_pressed && event.mouseButton.button == sf::Mouse::Left;
-    const bool right_mouse_pressed   = mouse_pressed && event.mouseButton.button == sf::Mouse::Right;
+    const bool key_released    = event.type == sf::Event::KeyReleased;
+    const bool key_pressed     = event.type == sf::Event::KeyPressed;
+    const bool mouse_pressed   = event.type == sf::Event::MouseButtonPressed;
+    const bool close_triggered = event.type == sf::Event::Closed;
+    const bool left_mouse_pressed =
+        mouse_pressed && event.mouseButton.button == sf::Mouse::Left;
+    const bool right_mouse_pressed =
+        mouse_pressed && event.mouseButton.button == sf::Mouse::Right;
     const sf::Keyboard::Key key_code = event.key.code;
 
     /**
-     * Sets the up-, down-, left-, and right_triggered to true if the corresponding key is pressed.
+     * Sets the up-, down-, left-, and right_triggered to true if the corresponding key is
+     * pressed.
      *
      * Otherwise it stays at its current value.
      */
@@ -271,7 +279,8 @@ void Game::sCollision() {
 
   for (auto playerEntity : playerEntities) {
     for (auto enemyEntity : enemyEntities) {
-      bool collision = CollisionHelpers::calculateCollisionBetweenEntities(playerEntity, enemyEntity);
+      bool collision =
+          CollisionHelpers::calculateCollisionBetweenEntities(playerEntity, enemyEntity);
       if (collision) {
         playerEntity->destroy();
         m_score = m_score > 0 ? m_score - 1 : 0;
@@ -282,18 +291,21 @@ void Game::sCollision() {
 
     std::bitset<4> collidesWithBoundary =
         CollisionHelpers::detectOutOfBounds(playerEntity, m_window.getSize());
-    CollisionHelpers::enforcePlayerBounds(playerEntity, collidesWithBoundary, m_window.getSize());
+    CollisionHelpers::enforcePlayerBounds(playerEntity, collidesWithBoundary,
+                                          m_window.getSize());
   }
 
   for (auto enemyEntity : enemyEntities) {
     std::bitset<4> collidesWithBoundary =
         CollisionHelpers::detectOutOfBounds(enemyEntity, m_window.getSize());
-    CollisionHelpers::enforceEnemyBounds(enemyEntity, collidesWithBoundary, m_window.getSize());
+    CollisionHelpers::enforceEnemyBounds(enemyEntity, collidesWithBoundary,
+                                         m_window.getSize());
   }
 
   for (auto bulletEntity : bulletEntities) {
     for (auto enemyEntity : enemyEntities) {
-      bool collision = CollisionHelpers::calculateCollisionBetweenEntities(bulletEntity, enemyEntity);
+      bool collision =
+          CollisionHelpers::calculateCollisionBetweenEntities(bulletEntity, enemyEntity);
       if (collision) {
         bulletEntity->destroy();
         enemyEntity->destroy();
@@ -319,8 +331,8 @@ void Game::sCollision() {
     }
 
     for (auto bulletEntity : bulletEntities) {
-      bool collision =
-          CollisionHelpers::calculateCollisionBetweenEntities(smallEnemyEntity, bulletEntity);
+      bool collision = CollisionHelpers::calculateCollisionBetweenEntities(
+          smallEnemyEntity, bulletEntity);
       if (collision) {
         bulletEntity->destroy();
         smallEnemyEntity->destroy();
@@ -330,7 +342,8 @@ void Game::sCollision() {
   }
 }
 
-// TODO finish adding all the properties of the player using the values from the config file
+// TODO finish adding all the properties of the player using the values from the config
+// file
 void Game::spawnPlayer() {
   auto  entity       = m_entities.addEntity(EntityTags::Player);
   float mx           = m_window.getSize().x / 2.0f;
@@ -340,11 +353,13 @@ void Game::spawnPlayer() {
   entity->cShape     = std::make_shared<CShape>(
       m_playerConfig.SR, m_playerConfig.V,
       sf::Color(m_playerConfig.FR, m_playerConfig.FG, m_playerConfig.FB),
-      sf::Color(m_playerConfig.OR, m_playerConfig.OG, m_playerConfig.OB), m_playerConfig.OT);
+      sf::Color(m_playerConfig.OR, m_playerConfig.OG, m_playerConfig.OB),
+      m_playerConfig.OT);
   entity->cInput = std::make_shared<CInput>();
 }
 
-// TODO finish adding all the properties of the enemy using the values from the config file
+// TODO finish adding all the properties of the enemy using the values from the config
+// file
 void Game::spawnEnemy() {
 
   srand(time(NULL));
@@ -368,7 +383,8 @@ void Game::spawnEnemy() {
   const float     RANDOM_ANGLE      = rand() % 360;
   const float     RANDOM_VERTICES   = rand() % MAX_VERTICES + MIN_VERTICES;
   const sf::Color COLOR             = COLORS[rand() % 7];
-  const sf::Color OUTLINE           = sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OB);
+  const sf::Color OUTLINE =
+      sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OB);
 
   const float RANDOM_POS_X = rand() % m_window.getSize().x;
   const float RANDOM_POS_Y = rand() % m_window.getSize().y;
@@ -383,10 +399,11 @@ void Game::spawnEnemy() {
   auto entity = m_entities.addEntity(EntityTags::Enemy);
 
   m_lastEnemySpawnTime = m_currentFrame;
-  entity->cTransform   = std::make_shared<CTransform>(Vec2(RANDOM_POS_X, RANDOM_POS_Y),
-                                                      Vec2(RANDOM_VEL_X, RANDOM_VEL_Y), RANDOM_ANGLE);
+  entity->cTransform   = std::make_shared<CTransform>(
+      Vec2(RANDOM_POS_X, RANDOM_POS_Y), Vec2(RANDOM_VEL_X, RANDOM_VEL_Y), RANDOM_ANGLE);
 
-  entity->cShape = std::make_shared<CShape>(RADIUS, RANDOM_VERTICES, COLOR, OUTLINE, OUTLINE_THICKNESS);
+  entity->cShape = std::make_shared<CShape>(RADIUS, RANDOM_VERTICES, COLOR, OUTLINE,
+                                            OUTLINE_THICKNESS);
 }
 
 void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
@@ -412,17 +429,21 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
   for (size_t i = 0; i < vertices; i += 1) {
     auto e = m_entities.addEntity(EntityTags::SmallEnemy);
 
-    double radians    = MathHelpers::degreesToRadians(angle);
-    float  velocity_x = cos(radians) * normalizedParentPos.x + sin(radians) * normalizedParentPos.y;
-    float  velocity_y = sin(radians) * normalizedParentPos.x - cos(radians) * normalizedParentPos.y;
-    Vec2   velocity   = Vec2(velocity_x, velocity_y);
+    double radians = MathHelpers::degreesToRadians(angle);
+    float  velocity_x =
+        cos(radians) * normalizedParentPos.x + sin(radians) * normalizedParentPos.y;
+    float velocity_y =
+        sin(radians) * normalizedParentPos.x - cos(radians) * normalizedParentPos.y;
+    Vec2 velocity = Vec2(velocity_x, velocity_y);
 
-    float vector_length      = MathHelpers::pythagoras(velocity.x, velocity.y);
-    Vec2  normalizedVelocity = Vec2(velocity.x / vector_length, velocity.y / vector_length);
-    Vec2  newVelocity        = Vec2(normalizedVelocity.x * entity->cTransform->velocity.x,
-                                    normalizedVelocity.y * entity->cTransform->velocity.y);
+    float vector_length = MathHelpers::pythagoras(velocity.x, velocity.y);
+    Vec2  normalizedVelocity =
+        Vec2(velocity.x / vector_length, velocity.y / vector_length);
+    Vec2 newVelocity = Vec2(normalizedVelocity.x * entity->cTransform->velocity.x,
+                            normalizedVelocity.y * entity->cTransform->velocity.y);
 
-    e->cShape     = std::make_shared<CShape>(smallEnemyRadius, vertices, fill, outline, thickness);
+    e->cShape =
+        std::make_shared<CShape>(smallEnemyRadius, vertices, fill, outline, thickness);
     e->cTransform = std::make_shared<CTransform>(parentPosition, newVelocity, 0);
 
     angle += 360 / vertices;
@@ -447,16 +468,19 @@ void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos) {
 
   const int       SHAPE_RADIUS      = m_bulletConfig.SR;
   const int       OUTLINE_THICKNESS = m_bulletConfig.OT;
-  const sf::Color COLOR             = sf::Color(m_bulletConfig.FR, m_bulletConfig.FG, m_bulletConfig.FB);
-  const sf::Color OUTLINE           = sf::Color(m_bulletConfig.OR, m_bulletConfig.OG, m_bulletConfig.OB);
-  const int       VERTICES          = 10;
-  const Vec2     &STARTING_POSITION = entity->cTransform->pos;
-  const int       ANGLE             = 0;
+  const sf::Color COLOR =
+      sf::Color(m_bulletConfig.FR, m_bulletConfig.FG, m_bulletConfig.FB);
+  const sf::Color OUTLINE =
+      sf::Color(m_bulletConfig.OR, m_bulletConfig.OG, m_bulletConfig.OB);
+  const int   VERTICES          = 10;
+  const Vec2 &STARTING_POSITION = entity->cTransform->pos;
+  const int   ANGLE             = 0;
   // Spawn a bullet entity from a given entity
 
   std::shared_ptr<Entity> bullet = m_entities.addEntity(EntityTags::Bullet);
-  bullet->cTransform             = std::make_shared<CTransform>(STARTING_POSITION, VELOCITY, ANGLE);
-  bullet->cShape = std::make_shared<CShape>(SHAPE_RADIUS, VERTICES, COLOR, OUTLINE, OUTLINE_THICKNESS);
+  bullet->cTransform = std::make_shared<CTransform>(STARTING_POSITION, VELOCITY, ANGLE);
+  bullet->cShape =
+      std::make_shared<CShape>(SHAPE_RADIUS, VERTICES, COLOR, OUTLINE, OUTLINE_THICKNESS);
 }
 
 void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity) {
