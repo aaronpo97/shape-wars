@@ -1,5 +1,6 @@
 
 #include "../includes/CollisionHelpers.h"
+#include "../includes/MathHelpers.h"
 #include <bitset>
 
 namespace CollisionHelpers {
@@ -85,7 +86,7 @@ namespace CollisionHelpers {
     * The distance between two vectors can be visualized as the hypotenuse of a right triangle where `dx`
     * and `dy` are the two sides of the triangle.
     */
-    const float dv = sqrt(dx * dx + dy * dy);
+    const float dv = MathHelpers::pythagoras(dx, dy);
 
     /*
      * If the distance between the two entities is less than or equal to the sum of their radii, they are

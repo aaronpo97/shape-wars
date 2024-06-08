@@ -417,8 +417,7 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
     float  velocity_y = sin(radians) * normalizedParentPos.x - cos(radians) * normalizedParentPos.y;
     Vec2   velocity   = Vec2(velocity_x, velocity_y);
 
-    // use the pythagorean theorem to normalize
-    float vector_length      = sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+    float vector_length      = MathHelpers::pythagoras(velocity.x, velocity.y);
     Vec2  normalizedVelocity = Vec2(velocity.x / vector_length, velocity.y / vector_length);
     Vec2  newVelocity        = Vec2(normalizedVelocity.x * entity->cTransform->velocity.x,
                                     normalizedVelocity.y * entity->cTransform->velocity.y);
