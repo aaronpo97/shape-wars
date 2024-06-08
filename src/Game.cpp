@@ -201,17 +201,42 @@ void Game::sRender() {
 
   m_window.clear();
 
-  // display the score
-  std::string scoreText = "Score: " + std::to_string(m_score);
+  sf::Text scoreText;
+  scoreText.setFont(m_font);
+  scoreText.setString("Score: " + std::to_string(m_score));
+  scoreText.setCharacterSize(32);
+  scoreText.setFillColor(sf::Color::White);
+  scoreText.setPosition(10, 10);
+  m_window.draw(scoreText);
 
-  sf::Text text;
-  text.setFont(m_font);
-  text.setString(scoreText);
-  text.setCharacterSize(32);
-  text.setFillColor(sf::Color::White);
-  text.setPosition(10, 10);
+  sf::Text livesText;
+  livesText.setFont(m_font);
+  livesText.setString("Lives: " + std::to_string(m_lives));
+  livesText.setCharacterSize(32);
+  livesText.setFillColor(sf::Color::White);
+  livesText.setPosition(10, 50);
+  m_window.draw(livesText);
 
-  m_window.draw(text);
+  sf::Text pausedText;
+  pausedText.setFont(m_font);
+  pausedText.setString("PAUSED");
+  pausedText.setCharacterSize(32);
+  pausedText.setFillColor(sf::Color::White);
+  pausedText.setPosition(10, 90);
+
+  if (m_paused) {
+    m_window.draw(pausedText);
+  }
+
+  if (m_lives <= 0) {
+    sf::Text gameOverText;
+    gameOverText.setFont(m_font);
+    gameOverText.setString("GAME OVER");
+    gameOverText.setCharacterSize(32);
+    gameOverText.setFillColor(sf::Color::White);
+    gameOverText.setPosition(10, 130);
+    m_window.draw(gameOverText);
+  }
 
   for (auto e : m_entities.getEntities()) {
     e->cShape->circle.setPosition(e->cTransform->pos.x, e->cTransform->pos.y);
