@@ -133,30 +133,36 @@ void Game::sMovement() {
 }
 
 void Game::sUserInput() {
+  /*
+   * Declare references to the input booleans for easier access.
+   */
+  bool &up_triggered    = m_player->cInput->up;
+  bool &left_triggered  = m_player->cInput->left;
+  bool &down_triggered  = m_player->cInput->down;
+  bool &right_triggered = m_player->cInput->right;
+  bool &shoot_triggered = m_player->cInput->shoot;
+
   sf::Event event;
+
   while (m_window.pollEvent(event)) {
-
-    const bool key_released    = event.type == sf::Event::KeyReleased;
-    const bool key_pressed     = event.type == sf::Event::KeyPressed;
-    const bool mouse_pressed   = event.type == sf::Event::MouseButtonPressed;
-    const bool close_triggered = event.type == sf::Event::Closed;
-
+    const bool key_released          = event.type == sf::Event::KeyReleased;
+    const bool key_pressed           = event.type == sf::Event::KeyPressed;
+    const bool mouse_pressed         = event.type == sf::Event::MouseButtonPressed;
+    const bool close_triggered       = event.type == sf::Event::Closed;
+    const bool left_mouse_pressed    = mouse_pressed && event.mouseButton.button == sf::Mouse::Left;
+    const bool right_mouse_pressed   = mouse_pressed && event.mouseButton.button == sf::Mouse::Right;
     const sf::Keyboard::Key key_code = event.key.code;
 
-    const bool left_mouse_pressed = mouse_pressed && event.mouseButton.button == sf::Mouse::Left;
-
-    const bool right_mouse_pressed = mouse_pressed && event.mouseButton.button == sf::Mouse::Right;
-
+    /**
+     * Sets the up-, down-, left-, and right_triggered to true if the corresponding key is pressed.
+     *
+     * Otherwise it stays at its current value.
+     */
     if (key_pressed) {
-      bool &up    = m_player->cInput->up;
-      bool &left  = m_player->cInput->left;
-      bool &down  = m_player->cInput->down;
-      bool &right = m_player->cInput->right;
-
-      up    = (key_code == sf::Keyboard::W) || up;
-      left  = (key_code == sf::Keyboard::A) || left;
-      down  = (key_code == sf::Keyboard::S) || down;
-      right = (key_code == sf::Keyboard::D) || right;
+      up_triggered    = (key_code == sf::Keyboard::W) || up_triggered;
+      left_triggered  = (key_code == sf::Keyboard::A) || left_triggered;
+      down_triggered  = (key_code == sf::Keyboard::S) || down_triggered;
+      right_triggered = (key_code == sf::Keyboard::D) || right_triggered;
 
       if (key_code == sf::Keyboard::P) {
         m_paused ? setPaused(false) : setPaused(true);
@@ -164,14 +170,19 @@ void Game::sUserInput() {
     }
 
     if (key_released) {
-      m_player->cInput->up    = key_code == sf::Keyboard::W ? false : m_player->cInput->up;
-      m_player->cInput->left  = key_code == sf::Keyboard::A ? false : m_player->cInput->left;
-      m_player->cInput->down  = key_code == sf::Keyboard::S ? false : m_player->cInput->down;
-      m_player->cInput->right = key_code == sf::Keyboard::D ? false : m_player->cInput->right;
+      up_triggered    = key_code == sf::Keyboard::W ? false : up_triggered;
+      left_triggered  = key_code == sf::Keyboard::A ? false : left_triggered;
+      down_triggered  = key_code == sf::Keyboard::S ? false : down_triggered;
+      right_triggered = key_code == sf::Keyboard::D ? false : right_triggered;
     }
 
-    if (left_mouse_pressed) {
-      m_player->cInput->shoot = true;
+    if (mouse_pressed) {
+      if (right_mouse_pressed) {
+        spawnSpecialWeapon(m_player);
+      }
+      if (left_mouse_pressed) {
+        shoot_triggered = true;
+      }
     }
 
     if (close_triggered) {
