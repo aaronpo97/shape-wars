@@ -81,7 +81,7 @@ void Game::run() {
   while (m_running) {
     m_entities.update();
 
-    if (!m_paused) {
+    if (!m_paused && m_lives > 0) {
       sEnemySpawner();
       sMovement();
       sCollision();
@@ -249,6 +249,7 @@ void Game::sCollision() {
         playerEntity->destroy();
         m_score = m_score > 0 ? m_score - 1 : 0;
         spawnPlayer();
+        m_lives -= 1;
       }
     }
 

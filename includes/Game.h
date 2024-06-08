@@ -31,8 +31,10 @@ private:
   bool                    m_paused             = false;
   bool                    m_running            = true;
   std::shared_ptr<Entity> m_player;
-  void                    init(const std::string &config);
-  void                    setPaused(bool paused);
+  int                     m_lives = 5;
+
+  void init(const std::string &config);
+  void setPaused(bool paused);
   // systems
   void sMovement();
   void sUserInput();
