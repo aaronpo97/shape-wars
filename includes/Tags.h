@@ -3,9 +3,10 @@
 #define ENTITY_TAGS_H
 
 namespace EntityTags {
-  std::string Player = "Player";
-  std::string Enemy  = "Enemy";
-  std::string Bullet = "Bullet";
+  std::string Player     = "Player";
+  std::string Enemy      = "Enemy";
+  std::string Bullet     = "Bullet";
+  std::string SmallEnemy = "SmallEnemy";
 } // namespace EntityTags
 
 #endif // ENTITY_TAGS_H

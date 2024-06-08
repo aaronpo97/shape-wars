@@ -1,9 +1,11 @@
 #include "../includes/Game.h"
 #include "../includes/CollisionHelpers.h"
 #include "../includes/Components.h"
+#include "../includes/MathHelpers.h"
 #include "../includes/Tags.h"
 #include <fstream>
 #include <iostream>
+#include <memory>
 
 Game::Game(const std::string &config) {
   init(config);
@@ -290,12 +292,13 @@ void Game::sCollision() {
   }
 
   for (auto bulletEntity : bulletEntities) {
-
     for (auto enemyEntity : enemyEntities) {
       bool collision = CollisionHelpers::calculateCollisionBetweenEntities(bulletEntity, enemyEntity);
       if (collision) {
         bulletEntity->destroy();
         enemyEntity->destroy();
+
+        spawnSmallEnemies(enemyEntity);
         m_score = m_score + 2;
       }
     }
@@ -304,6 +307,26 @@ void Game::sCollision() {
         CollisionHelpers::detectOutOfBounds(bulletEntity, m_window.getSize());
 
     CollisionHelpers::enforceBulletBounds(bulletEntity, collidesWithBoundary);
+  }
+
+  for (auto smallEnemyEntity : m_entities.getEntities(EntityTags::SmallEnemy)) {
+
+    std::bitset<4> collidesWithBoundary =
+        CollisionHelpers::detectOutOfBounds(smallEnemyEntity, m_window.getSize());
+
+    if (collidesWithBoundary.any()) {
+      smallEnemyEntity->destroy();
+    }
+
+    for (auto bulletEntity : bulletEntities) {
+      bool collision =
+          CollisionHelpers::calculateCollisionBetweenEntities(smallEnemyEntity, bulletEntity);
+      if (collision) {
+        bulletEntity->destroy();
+        smallEnemyEntity->destroy();
+        m_score = m_score + 5;
+      }
+    }
   }
 }
 
@@ -367,7 +390,44 @@ void Game::spawnEnemy() {
 }
 
 void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
-  // TODO: spawn small enemies at the location of the input enemy m_player
+
+  const size_t vertices       = entity->cShape->circle.getPointCount();
+  Vec2        &parentPosition = entity->cTransform->pos;
+
+  // copy the parent's velocity and normalize it
+
+  Vec2 parentPositionCopy  = parentPosition;
+  Vec2 normalizedParentPos = parentPositionCopy.normalize();
+
+  // Set each enemy to the same color as the original, half the size
+  const sf::Color &fill             = entity->cShape->circle.getFillColor();
+  const sf::Color &outline          = entity->cShape->circle.getOutlineColor();
+  const float     &thickness        = entity->cShape->circle.getOutlineThickness();
+  Vec2            &velocity         = entity->cTransform->velocity;
+  const float      smallEnemyRadius = entity->cShape->circle.getRadius() * 0.5f;
+  // const float      smallEnemyCollisionRadius = entity->cCollision->radius * 0.5f;
+
+  float angle = 0;
+
+  for (size_t i = 0; i < vertices; i += 1) {
+    auto e = m_entities.addEntity(EntityTags::SmallEnemy);
+
+    double radians    = MathHelpers::degreesToRadians(angle);
+    float  velocity_x = cos(radians) * normalizedParentPos.x + sin(radians) * normalizedParentPos.y;
+    float  velocity_y = sin(radians) * normalizedParentPos.x - cos(radians) * normalizedParentPos.y;
+    Vec2   velocity   = Vec2(velocity_x, velocity_y);
+
+    // use the pythagorean theorem to normalize
+    float vector_length      = sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+    Vec2  normalizedVelocity = Vec2(velocity.x / vector_length, velocity.y / vector_length);
+    Vec2  newVelocity        = Vec2(normalizedVelocity.x * entity->cTransform->velocity.x,
+                                    normalizedVelocity.y * entity->cTransform->velocity.y);
+
+    e->cShape     = std::make_shared<CShape>(smallEnemyRadius, vertices, fill, outline, thickness);
+    e->cTransform = std::make_shared<CTransform>(parentPosition, newVelocity, 0);
+
+    angle += 360 / vertices;
+  }
 }
 
 void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos) {
