@@ -206,19 +206,26 @@ void Game::sLifespan() {
     const std::shared_ptr<CLifespan> &lifespan = entity->cLifespan;
     const std::string                &tag      = entity->tag();
 
-    if (tag == EntityTags::SmallEnemy) {
-      lifespan->remaining -= 1;
-
-      // Gradually fade the fill color of the entity based on its remaining lifespan
-      const sf::Uint8  updated_alpha = lifespan->remaining * 2.55;
-      const sf::Color &fill          = entity->cShape->circle.getFillColor();
-      const sf::Color &outline       = entity->cShape->circle.getOutlineColor();
-
-      entity->cShape->circle.setFillColor(
-          sf::Color(fill.r, fill.g, fill.b, updated_alpha));
-      entity->cShape->circle.setOutlineColor(
-          sf::Color(outline.r, outline.g, outline.b, updated_alpha));
+    if (!lifespan) {
+      continue;
     }
+
+    // get the percentage of the lifespan remaining
+    const float percentage_remaining =
+        static_cast<float>(lifespan->remaining) / static_cast<float>(lifespan->total);
+
+    const sf::Uint8 updated_alpha = percentage_remaining * 255;
+
+    // set the alpha value of the fill color of the entity based on the percentage
+    // remaining if the entity is a small enemy
+
+    lifespan->remaining -= 1;
+    const sf::Color &fill    = entity->cShape->circle.getFillColor();
+    const sf::Color &outline = entity->cShape->circle.getOutlineColor();
+
+    entity->cShape->circle.setFillColor(sf::Color(fill.r, fill.g, fill.b, updated_alpha));
+    entity->cShape->circle.setOutlineColor(
+        sf::Color(outline.r, outline.g, outline.b, updated_alpha));
 
     if (lifespan->remaining <= 0) {
       entity->destroy();
@@ -344,7 +351,6 @@ void Game::sCollision() {
   }
 
   for (auto smallEnemyEntity : m_entities.getEntities(EntityTags::SmallEnemy)) {
-
     std::bitset<4> collidesWithBoundary =
         CollisionHelpers::detectOutOfBounds(smallEnemyEntity, m_window.getSize());
 
@@ -426,6 +432,8 @@ void Game::spawnEnemy() {
 
   entity->cShape = std::make_shared<CShape>(RADIUS, RANDOM_VERTICES, COLOR, OUTLINE,
                                             OUTLINE_THICKNESS);
+
+  entity->cLifespan = std::make_shared<CLifespan>(2000);
 }
 
 void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
@@ -467,6 +475,7 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
     e->cShape =
         std::make_shared<CShape>(smallEnemyRadius, vertices, fill, outline, thickness);
     e->cTransform = std::make_shared<CTransform>(parentPosition, newVelocity, 0);
+    e->cLifespan  = std::make_shared<CLifespan>(100);
 
     angle += 360 / vertices;
   }
@@ -503,6 +512,7 @@ void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos) {
   bullet->cTransform = std::make_shared<CTransform>(STARTING_POSITION, VELOCITY, ANGLE);
   bullet->cShape =
       std::make_shared<CShape>(SHAPE_RADIUS, VERTICES, COLOR, OUTLINE, OUTLINE_THICKNESS);
+  bullet->cLifespan = std::make_shared<CLifespan>(500);
 }
 
 void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity) {
