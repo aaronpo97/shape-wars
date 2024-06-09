@@ -8,8 +8,12 @@ namespace CollisionHelpers {
   enum Boundaries { TOP, BOTTOM, LEFT, RIGHT };
   std::bitset<4> detectOutOfBounds(const std::shared_ptr<Entity> &entity,
                                    const sf::Vector2u            &window_size) {
+
+    if (!entity->cTransform || !entity->cCollision) {
+      return std::bitset<4>();
+    }
     const Vec2 &pos    = entity->cTransform->pos;
-    const float radius = entity->cShape->circle.getRadius();
+    const float radius = entity->cCollision->radius;
 
     std::bitset<4> collidesWithBoundary;
     collidesWithBoundary.set(TOP, pos.y - radius < 0);
@@ -23,8 +27,10 @@ namespace CollisionHelpers {
   void enforcePlayerBounds(const std::shared_ptr<Entity> &entity,
                            const std::bitset<4>          &collides,
                            const sf::Vector2u            &window_size) {
-
-    const float radius = entity->cShape->circle.getRadius();
+    if (!entity->cTransform || !entity->cCollision) {
+      return;
+    }
+    const float radius = entity->cCollision->radius;
     if (collides[TOP]) {
       entity->cTransform->pos.y = radius;
     }
@@ -42,8 +48,11 @@ namespace CollisionHelpers {
   void enforceEnemyBounds(const std::shared_ptr<Entity> &entity,
                           const std::bitset<4>          &collides,
                           const sf::Vector2u            &window_size) {
+    if (!entity->cTransform || !entity->cCollision) {
+      return;
+    }
 
-    const float radius = entity->cShape->circle.getRadius();
+    const float radius = entity->cCollision->radius;
     if (collides[TOP]) {
       entity->cTransform->pos.y = radius;
       entity->cTransform->velocity.y *= -1;
@@ -65,18 +74,22 @@ namespace CollisionHelpers {
   void enforceBulletBounds(const std::shared_ptr<Entity> &entity,
                            const std::bitset<4>          &collides) {
     if (collides.any()) {
-
       entity->destroy();
     }
   }
 
   bool calculateCollisionBetweenEntities(const std::shared_ptr<Entity> &entityA,
                                          const std::shared_ptr<Entity> &entityB) {
+
+    if (!entityA->cCollision || !entityB->cCollision) {
+      return false;
+    }
+
     const Vec2 &centerPositionA = entityA->cTransform->pos;
-    const float radiusA         = entityA->cShape->circle.getRadius();
+    const float radiusA         = entityA->cCollision->radius;
 
     const Vec2 &centerPositionB = entityB->cTransform->pos;
-    const float radiusB         = entityB->cShape->circle.getRadius();
+    const float radiusB         = entityB->cCollision->radius;
 
     const float dx = centerPositionB.x - centerPositionA.x;
     const float dy = centerPositionB.y - centerPositionA.y;
