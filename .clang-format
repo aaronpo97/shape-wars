@@ -7,3 +7,4 @@ BreakConstructorInitializers: AfterColon
 PackConstructorInitializers: NextLineOnly
 NamespaceIndentation: All
 ColumnLimit: 90
+IndentCaseLabels: true

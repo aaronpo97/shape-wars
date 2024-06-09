@@ -1,38 +1,19 @@
 #include "../includes/Game.h"
+
+#include <fstream>
+#include <iostream>
+#include <memory>
+
 #include "../includes/CollisionHelpers.h"
 #include "../includes/Components.h"
 #include "../includes/MathHelpers.h"
 #include "../includes/Tags.h"
-#include <fstream>
-#include <iostream>
-#include <memory>
 
 Game::Game(const std::string &config) {
   init(config);
 }
 
 void Game::init(const std::string &path) {
-  // TODO: read in config file
-  // use the premade PlayerConfig, EnemyConfig, and BulletConfig structs
-  //   std::ifstream fin(path);
-
-  //   fin >> m_playerConfig.SR >> m_playerConfig.CR >> m_playerConfig.FR >>
-  //   m_playerConfig.FG >>
-  //       m_playerConfig.FB >> m_playerConfig.OR >> m_playerConfig.OG >>
-  //       m_playerConfig.OB >> m_playerConfig.OT >> m_playerConfig.V >> m_playerConfig.S;
-
-  //   fin >> m_enemyConfig.SR >> m_enemyConfig.CR >> m_enemyConfig.OR >> m_enemyConfig.OG
-  //   >>
-  //       m_enemyConfig.OB >> m_enemyConfig.OT >> m_enemyConfig.VMIN >>
-  //       m_enemyConfig.VMAX >> m_enemyConfig.L >> m_enemyConfig.SI >> m_enemyConfig.SMIN
-  //       >> m_enemyConfig.SMAX;
-
-  //   fin >> m_bulletConfig.SR >> m_bulletConfig.CR >> m_bulletConfig.FR >>
-  //   m_bulletConfig.FG >>
-  //       m_bulletConfig.FB >> m_bulletConfig.OR >> m_bulletConfig.OG >>
-  //       m_bulletConfig.OB >> m_bulletConfig.OT >> m_bulletConfig.V >> m_bulletConfig.L
-  //       >> m_bulletConfig.S;
-
   m_playerConfig.SR = 32;
   m_playerConfig.CR = 32;
   m_playerConfig.S  = 5;
@@ -58,15 +39,14 @@ void Game::init(const std::string &path) {
   m_enemyConfig.SMIN = 90;
   m_enemyConfig.SMAX = 60;
 
-  // 15 15 8 255 0 0 255 100 150 4 9 90 6
   m_bulletConfig.SR = 15;
   m_bulletConfig.CR = 15;
-  m_bulletConfig.FR = 8;
+  m_bulletConfig.FR = 255;
   m_bulletConfig.FG = 255;
-  m_bulletConfig.FB = 0;
+  m_bulletConfig.FB = 255;
   m_bulletConfig.OR = 0;
   m_bulletConfig.OG = 0;
-  m_bulletConfig.OB = 255;
+  m_bulletConfig.OB = 0;
   m_bulletConfig.OT = 2;
   m_bulletConfig.V  = 150;
   m_bulletConfig.L  = 4;
@@ -74,7 +54,7 @@ void Game::init(const std::string &path) {
 
   m_font.loadFromFile("../assets/fonts/Roboto.ttf");
 
-  m_window.create(sf::VideoMode(1600, 900), "Geometry Wars");
+  m_window.create(sf::VideoMode(3200, 1800), "Geometry Wars");
 
   m_window.setFramerateLimit(60);
 
@@ -82,8 +62,6 @@ void Game::init(const std::string &path) {
 }
 
 void Game::run() {
-
-  // TODO add pause functionality, some systems should not run when paused, others should
   // Animation Loop
   while (m_running) {
     m_entities.update();
@@ -106,7 +84,6 @@ void Game::setPaused(bool paused) {
 }
 
 void Game::sMovement() {
-
   Vec2 playerVelocity;
   if (m_player->cInput->left) {
     playerVelocity.x -= m_playerConfig.S;
@@ -141,9 +118,6 @@ void Game::sMovement() {
 }
 
 void Game::sUserInput() {
-  /*
-   * Declare references to the input booleans for easier access.
-   */
   bool &up_triggered    = m_player->cInput->up;
   bool &left_triggered  = m_player->cInput->left;
   bool &down_triggered  = m_player->cInput->down;
@@ -153,10 +127,13 @@ void Game::sUserInput() {
   sf::Event event;
 
   while (m_window.pollEvent(event)) {
-    const bool key_released    = event.type == sf::Event::KeyReleased;
-    const bool key_pressed     = event.type == sf::Event::KeyPressed;
-    const bool mouse_pressed   = event.type == sf::Event::MouseButtonPressed;
-    const bool close_triggered = event.type == sf::Event::Closed;
+    const bool key_released     = event.type == sf::Event::KeyReleased;
+    const bool key_pressed      = event.type == sf::Event::KeyPressed;
+    const bool mouse_pressed    = event.type == sf::Event::MouseButtonPressed;
+    const bool close_triggered  = event.type == sf::Event::Closed;
+    const bool resize_triggered = event.type == sf::Event::Resized;
+    const bool lost_focus       = event.type == sf::Event::LostFocus;
+
     const bool left_mouse_pressed =
         mouse_pressed && event.mouseButton.button == sf::Mouse::Left;
     const bool right_mouse_pressed =
@@ -170,21 +147,64 @@ void Game::sUserInput() {
      * Otherwise it stays at its current value.
      */
     if (key_pressed) {
-      up_triggered    = (key_code == sf::Keyboard::W) || up_triggered;
-      left_triggered  = (key_code == sf::Keyboard::A) || left_triggered;
-      down_triggered  = (key_code == sf::Keyboard::S) || down_triggered;
-      right_triggered = (key_code == sf::Keyboard::D) || right_triggered;
-
-      if (key_code == sf::Keyboard::P) {
-        m_paused ? setPaused(false) : setPaused(true);
+      switch (key_code) {
+        case sf::Keyboard::W: {
+          up_triggered = true;
+          break;
+        }
+        case sf::Keyboard::A: {
+          left_triggered = true;
+          break;
+        }
+        case sf::Keyboard::S: {
+          down_triggered = true;
+          break;
+        }
+        case sf::Keyboard::D: {
+          right_triggered = true;
+          break;
+        }
+        case sf::Keyboard::P: {
+          m_paused ? setPaused(false) : setPaused(true);
+          break;
+        }
+        case sf::Keyboard::R: {
+          for (auto e : m_entities.getEntities()) {
+            e->destroy();
+          }
+          m_lives = 5;
+          m_score = 0;
+          spawnPlayer();
+          break;
+        }
+        default: {
+          break;
+        }
       }
     }
 
     if (key_released) {
-      up_triggered    = key_code == sf::Keyboard::W ? false : up_triggered;
-      left_triggered  = key_code == sf::Keyboard::A ? false : left_triggered;
-      down_triggered  = key_code == sf::Keyboard::S ? false : down_triggered;
-      right_triggered = key_code == sf::Keyboard::D ? false : right_triggered;
+      switch (key_code) {
+        case sf::Keyboard::W: {
+          up_triggered = false;
+          break;
+        }
+        case sf::Keyboard::A: {
+          left_triggered = false;
+          break;
+        }
+        case sf::Keyboard::S: {
+          down_triggered = false;
+          break;
+        }
+        case sf::Keyboard::D: {
+          right_triggered = false;
+          break;
+        }
+        default: {
+          break;
+        }
+      }
     }
 
     if (mouse_pressed) {
@@ -199,8 +219,14 @@ void Game::sUserInput() {
     if (close_triggered) {
       m_running = false;
     }
+
+    if (resize_triggered || lost_focus) {
+      m_window.setView(
+          sf::View(sf::FloatRect(0, 0, m_window.getSize().x, m_window.getSize().y)));
+    }
   }
 }
+
 void Game::sLifespan() {
   for (std::shared_ptr<Entity> entity : m_entities.getEntities()) {
     const std::shared_ptr<CLifespan> &lifespan = entity->cLifespan;
@@ -216,10 +242,8 @@ void Game::sLifespan() {
 
     const sf::Uint8 updated_alpha = percentage_remaining * 255;
 
-    // set the alpha value of the fill color of the entity based on the percentage
-    // remaining if the entity is a small enemy
-
     lifespan->remaining -= 1;
+
     const sf::Color &fill    = entity->cShape->circle.getFillColor();
     const sf::Color &outline = entity->cShape->circle.getOutlineColor();
 
@@ -301,7 +325,6 @@ void Game::sEnemySpawner() {
 }
 
 void Game::sCollision() {
-
   const auto &playerEntities = m_entities.getEntities(EntityTags::Player);
   const auto &enemyEntities  = m_entities.getEntities(EntityTags::Enemy);
   const auto &bulletEntities = m_entities.getEntities(EntityTags::Bullet);
@@ -370,8 +393,8 @@ void Game::sCollision() {
   }
 }
 
-// TODO finish adding all the properties of the player using the values from the config
-// file
+// TODO finish adding all the properties of the player using the values from the
+// config file
 void Game::spawnPlayer() {
   auto  entity       = m_entities.addEntity(EntityTags::Player);
   float mx           = m_window.getSize().x / 2.0f;
@@ -386,10 +409,9 @@ void Game::spawnPlayer() {
   entity->cInput = std::make_shared<CInput>();
 }
 
-// TODO finish adding all the properties of the enemy using the values from the config
-// file
+// TODO finish adding all the properties of the enemy using the values from the
+// config file
 void Game::spawnEnemy() {
-
   srand(time(NULL));
   /*
     - Red
@@ -437,7 +459,6 @@ void Game::spawnEnemy() {
 }
 
 void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
-
   const size_t vertices       = entity->cShape->circle.getPointCount();
   Vec2        &parentPosition = entity->cTransform->pos;
 
@@ -452,7 +473,8 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
   const float     &thickness        = entity->cShape->circle.getOutlineThickness();
   Vec2            &velocity         = entity->cTransform->velocity;
   const float      smallEnemyRadius = entity->cShape->circle.getRadius() * 0.5f;
-  // const float      smallEnemyCollisionRadius = entity->cCollision->radius * 0.5f;
+  // const float      smallEnemyCollisionRadius = entity->cCollision->radius *
+  // 0.5f;
 
   float angle = 0;
 
@@ -482,7 +504,6 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
 }
 
 void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos) {
-
   /*
    * This Difference is used to determine the direction of the bullet.
    * Moves to left:   `x < 0`
