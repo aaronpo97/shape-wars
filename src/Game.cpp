@@ -201,7 +201,12 @@ void Game::sUserInput() {
   }
 }
 void Game::sLifespan() {
-  // Lifespan system
+  for (std::shared_ptr<Entity> entity : m_entities.getEntities()) {
+    const std::shared_ptr<CLifespan> &lifespan = entity->cLifespan;
+    if (lifespan->remaining <= 0) {
+      entity->destroy();
+    };
+  }
 }
 
 void Game::sRender() {

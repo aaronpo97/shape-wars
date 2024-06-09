@@ -1,6 +1,7 @@
 
 #include "../includes/EntityManager.h"
 #include "../includes/Entity.h"
+#include "../includes/Tags.h"
 
 #include <iostream>
 
@@ -8,7 +9,8 @@ EntityManager::EntityManager() :
     m_totalEntities(0) {}
 
 std::shared_ptr<Entity> EntityManager::addEntity(const std::string &tag) {
-  auto e = std::shared_ptr<Entity>(new Entity(m_totalEntities++, tag));
+  auto e       = std::shared_ptr<Entity>(new Entity(m_totalEntities++, tag));
+  e->cLifespan = std::make_shared<CLifespan>(100);
   m_toAdd.push_back(e);
   return e;
 }
@@ -28,7 +30,7 @@ void EntityManager::update() {
   };
 
   // add all entities in the `m_toAdd` vector to the main entity vector
-  for (auto &e : m_toAdd) {
+  for (const std::shared_ptr<Entity> &e : m_toAdd) {
     m_entities.push_back(e);
     m_entityMap[e->tag()].push_back(e);
   }

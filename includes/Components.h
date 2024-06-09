@@ -46,8 +46,9 @@ public:
 };
 
 class CLifespan {
-  int remaining = 0; // amount of lifespan remaining on the entity
-  int total     = 0; // the total initial lifespan of the entity
+public:
+  int       remaining = 0;   // amount of lifespan remaining on the entity
+  const int total     = 100; // the total initial lifespan of the entity
 
   CLifespan(const int t) :
       total(t), remaining(t) {}
