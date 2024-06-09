@@ -92,6 +92,7 @@ void Game::run() {
       sEnemySpawner();
       sMovement();
       sCollision();
+      sLifespan();
     }
 
     sUserInput();
@@ -203,6 +204,22 @@ void Game::sUserInput() {
 void Game::sLifespan() {
   for (std::shared_ptr<Entity> entity : m_entities.getEntities()) {
     const std::shared_ptr<CLifespan> &lifespan = entity->cLifespan;
+    const std::string                &tag      = entity->tag();
+
+    if (tag == EntityTags::SmallEnemy) {
+      lifespan->remaining -= 1;
+
+      // Gradually fade the fill color of the entity based on its remaining lifespan
+      const sf::Uint8  updated_alpha = lifespan->remaining * 2.55;
+      const sf::Color &fill          = entity->cShape->circle.getFillColor();
+      const sf::Color &outline       = entity->cShape->circle.getOutlineColor();
+
+      entity->cShape->circle.setFillColor(
+          sf::Color(fill.r, fill.g, fill.b, updated_alpha));
+      entity->cShape->circle.setOutlineColor(
+          sf::Color(outline.r, outline.g, outline.b, updated_alpha));
+    }
+
     if (lifespan->remaining <= 0) {
       entity->destroy();
     };

@@ -9,8 +9,7 @@ EntityManager::EntityManager() :
     m_totalEntities(0) {}
 
 std::shared_ptr<Entity> EntityManager::addEntity(const std::string &tag) {
-  auto e       = std::shared_ptr<Entity>(new Entity(m_totalEntities++, tag));
-  e->cLifespan = std::make_shared<CLifespan>(100);
+  auto e = std::shared_ptr<Entity>(new Entity(m_totalEntities++, tag));
   m_toAdd.push_back(e);
   return e;
 }
