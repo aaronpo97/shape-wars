@@ -165,7 +165,7 @@ void Game::sUserInput() {
           break;
         }
         case sf::Keyboard::P: {
-          m_paused ? setPaused(false) : setPaused(true);
+          setPaused(!m_paused && m_lives > 0 ? true : false);
           break;
         }
         case sf::Keyboard::R: {
@@ -264,40 +264,47 @@ void Game::sRender() {
 
   m_window.clear();
 
+  const sf::Vector2f initialTextPosition = {10, 10};
+
+  auto calculateNextTextPosition = [](const sf::Text &text) {
+    return sf::Vector2f(text.getPosition().x,
+                        text.getPosition().y + text.getGlobalBounds().height + 20);
+  };
+
   sf::Text scoreText;
   scoreText.setFont(m_font);
   scoreText.setString("Score: " + std::to_string(m_score));
   scoreText.setCharacterSize(32);
   scoreText.setFillColor(sf::Color::White);
-  scoreText.setPosition(10, 10);
+  scoreText.setPosition(initialTextPosition);
 
   sf::Text livesText;
   livesText.setFont(m_font);
   livesText.setString("Lives: " + std::to_string(m_lives));
   livesText.setCharacterSize(32);
   livesText.setFillColor(sf::Color::White);
-  livesText.setPosition(10, 50);
+  livesText.setPosition(calculateNextTextPosition(scoreText));
 
   sf::Text pausedText;
   pausedText.setFont(m_font);
   pausedText.setString("PAUSED");
   pausedText.setCharacterSize(32);
   pausedText.setFillColor(sf::Color::White);
-  pausedText.setPosition(10, 90);
+  pausedText.setPosition(calculateNextTextPosition(livesText));
 
   sf::Text gameOverText;
   gameOverText.setFont(m_font);
   gameOverText.setString("GAME OVER");
   gameOverText.setCharacterSize(32);
   gameOverText.setFillColor(sf::Color::White);
-  gameOverText.setPosition(10, 130);
+  gameOverText.setPosition(calculateNextTextPosition(livesText));
 
   sf::Text restartText;
   restartText.setFont(m_font);
   restartText.setString("Press R to restart");
   restartText.setCharacterSize(32);
   restartText.setFillColor(sf::Color::White);
-  restartText.setPosition(10, 170);
+  restartText.setPosition(calculateNextTextPosition(gameOverText));
 
   m_window.draw(scoreText);
   m_window.draw(livesText);
