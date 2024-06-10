@@ -270,7 +270,6 @@ void Game::sRender() {
   scoreText.setCharacterSize(32);
   scoreText.setFillColor(sf::Color::White);
   scoreText.setPosition(10, 10);
-  m_window.draw(scoreText);
 
   sf::Text livesText;
   livesText.setFont(m_font);
@@ -278,7 +277,6 @@ void Game::sRender() {
   livesText.setCharacterSize(32);
   livesText.setFillColor(sf::Color::White);
   livesText.setPosition(10, 50);
-  m_window.draw(livesText);
 
   sf::Text pausedText;
   pausedText.setFont(m_font);
@@ -287,26 +285,29 @@ void Game::sRender() {
   pausedText.setFillColor(sf::Color::White);
   pausedText.setPosition(10, 90);
 
+  sf::Text gameOverText;
+  gameOverText.setFont(m_font);
+  gameOverText.setString("GAME OVER");
+  gameOverText.setCharacterSize(32);
+  gameOverText.setFillColor(sf::Color::White);
+  gameOverText.setPosition(10, 130);
+
+  sf::Text restartText;
+  restartText.setFont(m_font);
+  restartText.setString("Press R to restart");
+  restartText.setCharacterSize(32);
+  restartText.setFillColor(sf::Color::White);
+  restartText.setPosition(10, 170);
+
+  m_window.draw(scoreText);
+  m_window.draw(livesText);
+
   if (m_paused) {
     m_window.draw(pausedText);
   }
 
   if (m_lives <= 0) {
-    sf::Text gameOverText;
-    gameOverText.setFont(m_font);
-    gameOverText.setString("GAME OVER");
-    gameOverText.setCharacterSize(32);
-    gameOverText.setFillColor(sf::Color::White);
-    gameOverText.setPosition(10, 130);
-
     m_window.draw(gameOverText);
-
-    sf::Text restartText;
-    restartText.setFont(m_font);
-    restartText.setString("Press R to restart");
-    restartText.setCharacterSize(32);
-    restartText.setFillColor(sf::Color::White);
-    restartText.setPosition(10, 170);
     m_window.draw(restartText);
   }
 
@@ -314,7 +315,6 @@ void Game::sRender() {
     e->cShape->circle.setPosition(e->cTransform->pos.x, e->cTransform->pos.y);
     m_window.draw(e->cShape->circle);
   }
-  // m_window.draw(m_scoreText);
 
   m_window.display();
 }
