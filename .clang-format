@@ -6,5 +6,5 @@ AllowShortFunctionsOnASingleLine: Empty
 BreakConstructorInitializers: AfterColon
 PackConstructorInitializers: NextLineOnly
 NamespaceIndentation: All
-ColumnLimit: 90
+ColumnLimit: 95
 IndentCaseLabels: true

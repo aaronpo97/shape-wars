@@ -298,7 +298,16 @@ void Game::sRender() {
     gameOverText.setCharacterSize(32);
     gameOverText.setFillColor(sf::Color::White);
     gameOverText.setPosition(10, 130);
+
     m_window.draw(gameOverText);
+
+    sf::Text restartText;
+    restartText.setFont(m_font);
+    restartText.setString("Press R to restart");
+    restartText.setCharacterSize(32);
+    restartText.setFillColor(sf::Color::White);
+    restartText.setPosition(10, 170);
+    m_window.draw(restartText);
   }
 
   for (auto e : m_entities.getEntities()) {
@@ -338,6 +347,7 @@ void Game::sCollision() {
         m_score = m_score > 0 ? m_score - 1 : 0;
         spawnPlayer();
         m_lives -= 1;
+        enemyEntity->destroy();
       }
     }
 
@@ -382,12 +392,13 @@ void Game::sCollision() {
     }
 
     for (auto bulletEntity : bulletEntities) {
-      bool collision = CollisionHelpers::calculateCollisionBetweenEntities(
-          smallEnemyEntity, bulletEntity);
+      bool collision =
+          CollisionHelpers::calculateCollisionBetweenEntities(smallEnemyEntity, bulletEntity);
       if (collision) {
         bulletEntity->destroy();
         smallEnemyEntity->destroy();
         m_score = m_score + 5;
+        spawnSmallEnemies(smallEnemyEntity);
       }
     }
   }
@@ -404,8 +415,7 @@ void Game::spawnPlayer() {
   entity->cShape     = std::make_shared<CShape>(
       m_playerConfig.SR, m_playerConfig.V,
       sf::Color(m_playerConfig.FR, m_playerConfig.FG, m_playerConfig.FB),
-      sf::Color(m_playerConfig.OR, m_playerConfig.OG, m_playerConfig.OB),
-      m_playerConfig.OT);
+      sf::Color(m_playerConfig.OR, m_playerConfig.OG, m_playerConfig.OB), m_playerConfig.OT);
   entity->cInput     = std::make_shared<CInput>();
   entity->cCollision = std::make_shared<CCollision>(m_playerConfig.CR);
 }
@@ -434,8 +444,7 @@ void Game::spawnEnemy() {
   const float     RANDOM_ANGLE      = rand() % 360;
   const float     RANDOM_VERTICES   = rand() % MAX_VERTICES + MIN_VERTICES;
   const sf::Color COLOR             = COLORS[rand() % 7];
-  const sf::Color OUTLINE =
-      sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OB);
+  const sf::Color OUTLINE = sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OB);
 
   const float RANDOM_POS_X = rand() % m_window.getSize().x;
   const float RANDOM_POS_Y = rand() % m_window.getSize().y;
@@ -453,52 +462,60 @@ void Game::spawnEnemy() {
   entity->cTransform   = std::make_shared<CTransform>(
       Vec2(RANDOM_POS_X, RANDOM_POS_Y), Vec2(RANDOM_VEL_X, RANDOM_VEL_Y), RANDOM_ANGLE);
 
-  entity->cShape = std::make_shared<CShape>(RADIUS, RANDOM_VERTICES, COLOR, OUTLINE,
-                                            OUTLINE_THICKNESS);
+  entity->cShape =
+      std::make_shared<CShape>(RADIUS, RANDOM_VERTICES, COLOR, OUTLINE, OUTLINE_THICKNESS);
 
   entity->cLifespan  = std::make_shared<CLifespan>(2000);
   entity->cCollision = std::make_shared<CCollision>(RADIUS);
 }
 
-void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
-  const size_t vertices       = entity->cShape->circle.getPointCount();
-  Vec2        &parentPosition = entity->cTransform->pos;
+void Game::spawnSmallEnemies(std::shared_ptr<Entity> parentEntity) {
 
-  // copy the parent's velocity and normalize it
+  const std::shared_ptr<CShape>     &parentCShape     = parentEntity->cShape;
+  const std::shared_ptr<CTransform> &parentCTransform = parentEntity->cTransform;
+  const std::shared_ptr<CCollision> &parentCCollision = parentEntity->cCollision;
+  const std::shared_ptr<CLifespan>  &parentCLifespan  = parentEntity->cLifespan;
 
-  Vec2 parentPositionCopy  = parentPosition;
-  Vec2 normalizedParentPos = parentPositionCopy.normalize();
+  Vec2 &parentPosition      = parentCTransform->pos;
+  Vec2  parentPositionCopy  = parentPosition;
+  Vec2  normalizedParentPos = parentPositionCopy.normalize();
 
   // Set each enemy to the same color as the original, half the size
-  const sf::Color &fill             = entity->cShape->circle.getFillColor();
-  const sf::Color &outline          = entity->cShape->circle.getOutlineColor();
-  const float     &thickness        = entity->cShape->circle.getOutlineThickness();
-  Vec2            &velocity         = entity->cTransform->velocity;
-  const float      smallEnemyRadius = entity->cShape->circle.getRadius() * 0.5f;
-
-  float angle = 0;
+  const sf::Color &fill                   = parentCShape->circle.getFillColor();
+  const sf::Color &outline                = parentCShape->circle.getOutlineColor();
+  const float     &thickness              = parentCShape->circle.getOutlineThickness();
+  Vec2            &velocity               = parentCTransform->velocity;
+  const float      smEnemyShapeRadius     = parentCShape->circle.getRadius() * 0.5f;
+  const float      smEnemyCollisionRadius = parentEntity->cCollision->radius * 0.5f;
+  float            angle                  = 0;
+  const size_t     vertices               = parentCShape->circle.getPointCount();
 
   for (size_t i = 0; i < vertices; i += 1) {
-    auto smallEnemy = m_entities.addEntity(EntityTags::SmallEnemy);
+    std::shared_ptr<Entity> smallEnemy = m_entities.addEntity(EntityTags::SmallEnemy);
 
-    double radians = MathHelpers::degreesToRadians(angle);
-    float  velocity_x =
-        cos(radians) * normalizedParentPos.x + sin(radians) * normalizedParentPos.y;
-    float velocity_y =
-        sin(radians) * normalizedParentPos.x - cos(radians) * normalizedParentPos.y;
-    Vec2 velocity = Vec2(velocity_x, velocity_y);
+    float radians              = MathHelpers::degreesToRadians(angle);
+    float percentage_remaining = static_cast<float>(parentCLifespan->remaining) /
+                                 static_cast<float>(parentCLifespan->total);
+
+    Vec2 velocity =
+        Vec2(cos(radians) * normalizedParentPos.x + sin(radians) * normalizedParentPos.y,
+             sin(radians) * normalizedParentPos.x - cos(radians) * normalizedParentPos.y);
 
     float vector_length = MathHelpers::pythagoras(velocity.x, velocity.y);
-    Vec2  normalizedVelocity =
-        Vec2(velocity.x / vector_length, velocity.y / vector_length);
-    Vec2 newVelocity = Vec2(normalizedVelocity.x * entity->cTransform->velocity.x,
-                            normalizedVelocity.y * entity->cTransform->velocity.y);
+
+    Vec2 normalizedVelocity =
+        Vec2(velocity.x / vector_length, velocity.y / vector_length).normalize();
+
+    Vec2 newVelocity = Vec2(normalizedVelocity.x * parentEntity->cTransform->velocity.x,
+                            normalizedVelocity.y * parentEntity->cTransform->velocity.y);
 
     smallEnemy->cShape =
-        std::make_shared<CShape>(smallEnemyRadius, vertices, fill, outline, thickness);
+        std::make_shared<CShape>(smEnemyShapeRadius, vertices, fill, outline, thickness);
     smallEnemy->cTransform = std::make_shared<CTransform>(parentPosition, newVelocity, 0);
-    smallEnemy->cLifespan  = std::make_shared<CLifespan>(100);
-    smallEnemy->cCollision = std::make_shared<CCollision>(smallEnemyRadius);
+    smallEnemy->cLifespan  = std::make_shared<CLifespan>(parentCLifespan->total / 10);
+
+    smallEnemy->cLifespan->remaining = smallEnemy->cLifespan->total * percentage_remaining;
+    smallEnemy->cCollision           = std::make_shared<CCollision>(smEnemyCollisionRadius);
 
     angle += 360 / vertices;
   }
@@ -521,13 +538,11 @@ void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos) {
 
   const int       SHAPE_RADIUS      = m_bulletConfig.SR;
   const int       OUTLINE_THICKNESS = m_bulletConfig.OT;
-  const sf::Color COLOR =
-      sf::Color(m_bulletConfig.FR, m_bulletConfig.FG, m_bulletConfig.FB);
-  const sf::Color OUTLINE =
-      sf::Color(m_bulletConfig.OR, m_bulletConfig.OG, m_bulletConfig.OB);
-  const int   VERTICES          = 10;
-  const Vec2 &STARTING_POSITION = entity->cTransform->pos;
-  const int   ANGLE             = 0;
+  const sf::Color COLOR   = sf::Color(m_bulletConfig.FR, m_bulletConfig.FG, m_bulletConfig.FB);
+  const sf::Color OUTLINE = sf::Color(m_bulletConfig.OR, m_bulletConfig.OG, m_bulletConfig.OB);
+  const int       VERTICES          = 10;
+  const Vec2     &STARTING_POSITION = entity->cTransform->pos;
+  const int       ANGLE             = 0;
   // Spawn a bullet entity from a given entity
 
   std::shared_ptr<Entity> bullet = m_entities.addEntity(EntityTags::Bullet);
