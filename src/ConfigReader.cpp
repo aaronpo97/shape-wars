@@ -1,9 +1,9 @@
 #include "../includes/ConfigReader.h"
 #include <iostream>
 void ConfigReader::read() {
-  m_playerConfig.SR = 32;
-  m_playerConfig.CR = 32;
-  m_playerConfig.S  = 5;
+  m_playerConfig.SR = 40;
+  m_playerConfig.CR = 40;
+  m_playerConfig.S  = 6;
   m_playerConfig.FR = 5;
   m_playerConfig.FG = 5;
   m_playerConfig.FB = 5;
@@ -35,9 +35,14 @@ void ConfigReader::read() {
   m_bulletConfig.OG = 0;
   m_bulletConfig.OB = 0;
   m_bulletConfig.OT = 2;
-  m_bulletConfig.V  = 150;
+  m_bulletConfig.V  = 15;
   m_bulletConfig.L  = 4;
   m_bulletConfig.S  = 9;
+
+  m_windowConfig.W  = 3200;
+  m_windowConfig.H  = 1800;
+  m_windowConfig.FS = 0;
+  m_windowConfig.FL = 60;
 }
 
 PlayerConfig ConfigReader::getPlayerConfig() const {
@@ -50,4 +55,8 @@ EnemyConfig ConfigReader::getEnemyConfig() const {
 
 BulletConfig ConfigReader::getBulletConfig() const {
   return m_bulletConfig;
+}
+
+WindowConfig ConfigReader::getWindowConfig() const {
+  return m_windowConfig;
 }

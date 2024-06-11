@@ -17,8 +17,11 @@ Game::Game(const std::string &config) {
 void Game::init(const std::string &path) {
   m_configReader.read();
   m_font.loadFromFile("../assets/fonts/Roboto.ttf");
-  m_window.create(sf::VideoMode(3200, 1800), "Geometry Wars");
-  m_window.setFramerateLimit(60);
+
+  const auto &WindowConfig = m_configReader.getWindowConfig();
+  m_window.create(sf::VideoMode(WindowConfig.W, WindowConfig.H), "SFML works!");
+
+  m_window.setFramerateLimit(WindowConfig.FL);
 
   spawnPlayer();
 }

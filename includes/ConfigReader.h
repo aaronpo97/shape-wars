@@ -4,10 +4,11 @@
 #include <string>
 
 struct WindowConfig {
-  int W;  // Width
-  int H;  // Height
-  int FL; // Framerate limit
-  int FS; // Fullscreen
+  int         W;  // Width
+  int         H;  // Height
+  int         FL; // Framerate limit
+  int         FS; // Fullscreen
+  std::string T;  // Title
 };
 
 struct PlayerConfig {
@@ -60,20 +61,19 @@ class ConfigReader {
 private:
   std::string  m_path;
   PlayerConfig m_playerConfig;
+  WindowConfig m_windowConfig;
   EnemyConfig  m_enemyConfig;
   BulletConfig m_bulletConfig;
 
 public:
-  ConfigReader(const std::string &path) :
+  ConfigReader(const std::string &path = "./config.txt") :
       m_path(path), m_playerConfig(), m_enemyConfig(), m_bulletConfig() {}
-
-  ConfigReader() :
-      m_path("./config/config.txt"), m_playerConfig(), m_enemyConfig(), m_bulletConfig() {}
 
   void         read();
   PlayerConfig getPlayerConfig() const;
   EnemyConfig  getEnemyConfig() const;
   BulletConfig getBulletConfig() const;
+  WindowConfig getWindowConfig() const;
 };
 
 #endif // CONFIG_READER_H
