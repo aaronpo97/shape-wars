@@ -10,52 +10,14 @@
 #include "../includes/Tags.h"
 
 Game::Game(const std::string &config) {
+  m_configReader = ConfigReader(config);
   init(config);
 }
 
 void Game::init(const std::string &path) {
-  m_playerConfig.SR = 32;
-  m_playerConfig.CR = 32;
-  m_playerConfig.S  = 5;
-  m_playerConfig.FR = 5;
-  m_playerConfig.FG = 5;
-  m_playerConfig.FB = 5;
-  m_playerConfig.OR = 255;
-  m_playerConfig.OG = 0;
-  m_playerConfig.OB = 0;
-  m_playerConfig.OT = 4;
-  m_playerConfig.V  = 8;
-
-  m_enemyConfig.SR   = 32;
-  m_enemyConfig.CR   = 32;
-  m_enemyConfig.OR   = 255;
-  m_enemyConfig.OG   = 255;
-  m_enemyConfig.OB   = 255;
-  m_enemyConfig.OT   = 3;
-  m_enemyConfig.VMIN = 3;
-  m_enemyConfig.VMAX = 6;
-  m_enemyConfig.L    = 3;
-  m_enemyConfig.SI   = 8;
-  m_enemyConfig.SMIN = 90;
-  m_enemyConfig.SMAX = 60;
-
-  m_bulletConfig.SR = 15;
-  m_bulletConfig.CR = 15;
-  m_bulletConfig.FR = 255;
-  m_bulletConfig.FG = 255;
-  m_bulletConfig.FB = 255;
-  m_bulletConfig.OR = 0;
-  m_bulletConfig.OG = 0;
-  m_bulletConfig.OB = 0;
-  m_bulletConfig.OT = 2;
-  m_bulletConfig.V  = 150;
-  m_bulletConfig.L  = 4;
-  m_bulletConfig.S  = 9;
-
+  m_configReader.read();
   m_font.loadFromFile("../assets/fonts/Roboto.ttf");
-
   m_window.create(sf::VideoMode(3200, 1800), "Geometry Wars");
-
   m_window.setFramerateLimit(60);
 
   spawnPlayer();
@@ -84,7 +46,10 @@ void Game::setPaused(bool paused) {
 }
 
 void Game::sMovement() {
-  Vec2 playerVelocity;
+
+  const PlayerConfig &m_playerConfig = m_configReader.getPlayerConfig();
+  Vec2                playerVelocity;
+
   if (m_player->cInput->left) {
     playerVelocity.x -= m_playerConfig.S;
   }
@@ -414,10 +379,12 @@ void Game::sCollision() {
 // TODO finish adding all the properties of the player using the values from the
 // config file
 void Game::spawnPlayer() {
-  auto  entity       = m_entities.addEntity(EntityTags::Player);
-  float mx           = m_window.getSize().x / 2.0f;
-  float my           = m_window.getSize().y / 2.0f;
-  m_player           = entity;
+  const PlayerConfig &m_playerConfig = m_configReader.getPlayerConfig();
+  auto                entity         = m_entities.addEntity(EntityTags::Player);
+  float               mx             = m_window.getSize().x / 2.0f;
+  float               my             = m_window.getSize().y / 2.0f;
+  m_player                           = entity;
+
   entity->cTransform = std::make_shared<CTransform>(Vec2(mx, my), Vec2(1, 1), 0);
   entity->cShape     = std::make_shared<CShape>(
       m_playerConfig.SR, m_playerConfig.V,
@@ -430,16 +397,9 @@ void Game::spawnPlayer() {
 // TODO finish adding all the properties of the enemy using the values from the
 // config file
 void Game::spawnEnemy() {
+  const EnemyConfig &m_enemyConfig = m_configReader.getEnemyConfig();
   srand(time(NULL));
-  /*
-    - Red
-    - Orange
-    - Yellow
-    - Green
-    - Blue
-    - Indigo
-    - Violet
-  */
+  // Red, Orange, Yellow, Green, Blue, Indigo, Violet
   const std::array<sf::Color, 7> COLORS = {
       sf::Color::Red,  sf::Color(255, 165, 0), sf::Color::Yellow,        sf::Color::Green,
       sf::Color::Blue, sf::Color(75, 0, 130),  sf::Color(238, 130, 238),
@@ -529,6 +489,8 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> parentEntity) {
 }
 
 void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos) {
+
+  const BulletConfig &m_bulletConfig = m_configReader.getBulletConfig();
   /*
    * This Difference is used to determine the direction of the bullet.
    * Moves to left:   `x < 0`
