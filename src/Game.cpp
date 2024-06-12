@@ -9,20 +9,16 @@
 #include "../includes/MathHelpers.h"
 #include "../includes/Tags.h"
 
-Game::Game(const std::string &config) {
-  m_configReader = ConfigReader(config);
-  init(config);
+Game::Game(const std::string &config_path) {
+  init(config_path);
 }
 
-void Game::init(const std::string &path) {
-  m_configReader.read();
+void Game::init(const std::string &config_path) {
+  m_configReader = ConfigReader(config_path);
   m_font.loadFromFile("../assets/fonts/Roboto.ttf");
-
   const auto &WindowConfig = m_configReader.getWindowConfig();
   m_window.create(sf::VideoMode(WindowConfig.W, WindowConfig.H), "SFML works!");
-
   m_window.setFramerateLimit(WindowConfig.FL);
-
   spawnPlayer();
 }
 
@@ -294,7 +290,8 @@ void Game::sRender() {
 }
 
 void Game::sEnemySpawner() {
-  if (m_currentFrame - m_lastEnemySpawnTime > 120) {
+  // spawn an enemy every 60 frames
+  if (m_currentFrame - m_lastEnemySpawnTime > 60) {
     spawnEnemy();
   }
 
@@ -453,15 +450,14 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> parentEntity) {
   Vec2  parentPositionCopy  = parentPosition;
   Vec2  normalizedParentPos = parentPositionCopy.normalize();
 
-  // Set each enemy to the same color as the original, half the size
-  const sf::Color &FILL                  = parentCShape->circle.getFillColor();
-  const sf::Color &OUTLINE_COLOR         = parentCShape->circle.getOutlineColor();
-  const float     &OUTLINE_THICKNESS     = parentCShape->circle.getOutlineThickness();
-  Vec2            &VELOCITY              = parentCTransform->velocity;
-  const float      SM_ENEMY_SHAPE_RADIUS = parentCShape->circle.getRadius() * 0.5f;
-  const float      SM_ENEMY_SHAPE_RADIUS = parentEntity->cCollision->radius * 0.5f;
-  float            ANGLE                 = 0;
-  const size_t     VERTICES              = parentCShape->circle.getPointCount();
+  const sf::Color &FILL                      = parentCShape->circle.getFillColor();
+  const sf::Color &OUTLINE_COLOR             = parentCShape->circle.getOutlineColor();
+  const float     &OUTLINE_THICKNESS         = parentCShape->circle.getOutlineThickness();
+  Vec2            &VELOCITY                  = parentCTransform->velocity;
+  const float      SM_ENEMY_SHAPE_RADIUS     = parentCShape->circle.getRadius() * 0.5f;
+  const float      SM_ENEMY_COLLISION_RADIUS = parentEntity->cCollision->radius * 0.5f;
+  float            ANGLE                     = 0;
+  const size_t     VERTICES                  = parentCShape->circle.getPointCount();
 
   for (size_t i = 0; i < VERTICES; i += 1) {
 
@@ -546,7 +542,58 @@ void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos) {
   bullet->cLifespan              = cLifespan;
   bullet->cCollision             = cCollision;
 }
-
+// spawns 10 bullets in a circle around the player, taking into account the player's rotation
 void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity) {
-  // Spawn a special weapon entity from a given entity
+  const SpecialWeaponConfig &m_specialWeaponConfig = m_configReader.getSpecialWeaponConfig();
+  const Vec2                &START_POSITION        = entity->cTransform->pos;
+  const float                PLAYER_ANGLE          = entity->cTransform->angle;
+
+  const auto FILL_RED   = m_specialWeaponConfig.FR;
+  const auto FILL_GREEN = m_specialWeaponConfig.FG;
+  const auto FILL_BLUE  = m_specialWeaponConfig.FB;
+
+  const auto OUTLINE_RED   = m_specialWeaponConfig.OR;
+  const auto OUTLINE_GREEN = m_specialWeaponConfig.OG;
+  const auto OUTLINE_BLUE  = m_specialWeaponConfig.OB;
+
+  const sf::Color &COLOR   = sf::Color(FILL_RED, FILL_GREEN, FILL_BLUE);
+  const sf::Color &OUTLINE = sf::Color(OUTLINE_RED, OUTLINE_GREEN, OUTLINE_BLUE);
+
+  const int LIFESPAN = m_specialWeaponConfig.L;
+
+  const int SHAPE_RADIUS      = m_specialWeaponConfig.SR / 2;
+  const int COLLISION_RADIUS  = m_specialWeaponConfig.CR / 2;
+  const int OUTLINE_THICKNESS = m_specialWeaponConfig.OT / 2;
+  const int VERTICES          = 10;
+  const int ANGLE             = 0;
+
+  const int   numberOfBullets = 5;
+  const float angleIncrement  = 360.0f / static_cast<float>(numberOfBullets);
+  float       angle           = 0.0f;
+
+  for (int i = 0; i < numberOfBullets; i++) {
+    const float bulletAngle = PLAYER_ANGLE + angle;
+    const Vec2  mousePos =
+        Vec2(START_POSITION.x + 100 * cos(MathHelpers::degreesToRadians(bulletAngle)),
+             START_POSITION.y + 100 * sin(MathHelpers::degreesToRadians(bulletAngle)));
+
+    std::shared_ptr<Entity> bullet = m_entities.addEntity(EntityTags::Bullet);
+
+    const Vec2 VELOCITY =
+        Vec2(numberOfBullets * cos(MathHelpers::degreesToRadians(bulletAngle)),
+             numberOfBullets * sin(MathHelpers::degreesToRadians(bulletAngle)));
+
+    const auto cTransform = std::make_shared<CTransform>(START_POSITION, VELOCITY, ANGLE);
+    const auto cShape =
+        std::make_shared<CShape>(SHAPE_RADIUS, VERTICES, COLOR, OUTLINE, OUTLINE_THICKNESS);
+    const auto cLifespan  = std::make_shared<CLifespan>(LIFESPAN);
+    const auto cCollision = std::make_shared<CCollision>(COLLISION_RADIUS);
+
+    bullet->cTransform = cTransform;
+    bullet->cShape     = cShape;
+    bullet->cLifespan  = cLifespan;
+    bullet->cCollision = cCollision;
+
+    angle += angleIncrement;
+  }
 }

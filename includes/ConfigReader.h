@@ -57,23 +57,40 @@ struct BulletConfig {
   float SMIN; // Min speed
   float SMAX; // Max speed
 };
+
+struct SpecialWeaponConfig {
+  int   SR; // Shape radius
+  int   CR; // Collision radius
+  int   FR; // Fill red
+  int   FG; // Fill green
+  int   FB; // Fill blue
+  int   OR; // Outline red
+  int   OG; // Outline green
+  int   OB; // Outline blue
+  int   OT; // Outline thickness
+  int   V;  // Shape vertices
+  int   L;  // Lifespan
+  float S;  // Speed
+  float CD; // Cooldown
+};
 class ConfigReader {
 private:
-  std::string  m_path;
-  PlayerConfig m_playerConfig;
-  WindowConfig m_windowConfig;
-  EnemyConfig  m_enemyConfig;
-  BulletConfig m_bulletConfig;
+  std::string         m_path;
+  PlayerConfig        m_playerConfig;
+  WindowConfig        m_windowConfig;
+  EnemyConfig         m_enemyConfig;
+  SpecialWeaponConfig m_specialWeaponConfig;
+  BulletConfig        m_bulletConfig;
+  void                read();
 
 public:
-  ConfigReader(const std::string &path = "./config.txt") :
-      m_path(path), m_playerConfig(), m_enemyConfig(), m_bulletConfig() {}
+  ConfigReader(const std::string &path = "./config.txt");
 
-  void         read();
-  PlayerConfig getPlayerConfig() const;
-  EnemyConfig  getEnemyConfig() const;
-  BulletConfig getBulletConfig() const;
-  WindowConfig getWindowConfig() const;
+  PlayerConfig        getPlayerConfig() const;
+  EnemyConfig         getEnemyConfig() const;
+  BulletConfig        getBulletConfig() const;
+  WindowConfig        getWindowConfig() const;
+  SpecialWeaponConfig getSpecialWeaponConfig() const;
 };
 
 #endif // CONFIG_READER_H

@@ -21,7 +21,7 @@ void ConfigReader::read() {
   m_enemyConfig.OT   = 3;
   m_enemyConfig.VMIN = 3;
   m_enemyConfig.VMAX = 6;
-  m_enemyConfig.L    = 3;
+  m_enemyConfig.L    = 1000;
   m_enemyConfig.SI   = 8;
   m_enemyConfig.SMIN = 90;
   m_enemyConfig.SMAX = 60;
@@ -38,6 +38,20 @@ void ConfigReader::read() {
   m_bulletConfig.V  = 15;
   m_bulletConfig.L  = 4;
   m_bulletConfig.S  = 9;
+
+  m_specialWeaponConfig.SR = 9;
+  m_specialWeaponConfig.CR = 9;
+  m_specialWeaponConfig.FR = 0;
+  m_specialWeaponConfig.FG = 200;
+  m_specialWeaponConfig.FB = 200;
+  m_specialWeaponConfig.OR = 0;
+  m_specialWeaponConfig.OG = 0;
+  m_specialWeaponConfig.OB = 0;
+  m_specialWeaponConfig.OT = 0;
+  m_specialWeaponConfig.V  = 3;
+  m_specialWeaponConfig.L  = 100;
+  m_specialWeaponConfig.S  = 10;
+  m_specialWeaponConfig.CD = 1000;
 
   m_windowConfig.W  = 3200;
   m_windowConfig.H  = 1800;
@@ -59,4 +73,13 @@ BulletConfig ConfigReader::getBulletConfig() const {
 
 WindowConfig ConfigReader::getWindowConfig() const {
   return m_windowConfig;
+}
+
+SpecialWeaponConfig ConfigReader::getSpecialWeaponConfig() const {
+  return m_specialWeaponConfig;
+}
+
+ConfigReader::ConfigReader(const std::string &path) :
+    m_path(path) {
+  read();
 }
