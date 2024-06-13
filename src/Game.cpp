@@ -225,7 +225,12 @@ void Game::sRender() {
     m_window.close();
   }
 
-  m_window.clear();
+  m_window.clear(sf::Color(25, 25, 25));
+
+  for (auto e : m_entities.getEntities()) {
+    e->cShape->circle.setPosition(e->cTransform->pos.x, e->cTransform->pos.y);
+    m_window.draw(e->cShape->circle);
+  }
 
   const sf::Vector2f initialTextPosition = {10, 10};
 
@@ -279,11 +284,6 @@ void Game::sRender() {
   if (m_lives <= 0) {
     m_window.draw(gameOverText);
     m_window.draw(restartText);
-  }
-
-  for (auto e : m_entities.getEntities()) {
-    e->cShape->circle.setPosition(e->cTransform->pos.x, e->cTransform->pos.y);
-    m_window.draw(e->cShape->circle);
   }
 
   m_window.display();
