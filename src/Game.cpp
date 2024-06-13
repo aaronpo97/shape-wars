@@ -333,25 +333,28 @@ void Game::sCollision() {
         CollisionHelpers::detectOutOfBounds(enemyEntity, m_window.getSize());
     CollisionHelpers::enforceEnemyBounds(enemyEntity, collidesWithBoundary,
                                          m_window.getSize());
-  }
 
-  for (auto bulletEntity : bulletEntities) {
-    for (auto enemyEntity : enemyEntities) {
+    for (auto bulletEntity : bulletEntities) {
       bool collision =
-          CollisionHelpers::calculateCollisionBetweenEntities(bulletEntity, enemyEntity);
+          CollisionHelpers::calculateCollisionBetweenEntities(enemyEntity, bulletEntity);
       if (collision) {
         bulletEntity->destroy();
         enemyEntity->destroy();
-
-        spawnSmallEnemies(enemyEntity);
         m_score = m_score + 2;
+        spawnSmallEnemies(enemyEntity);
       }
     }
 
-    std::bitset<4> collidesWithBoundary =
-        CollisionHelpers::detectOutOfBounds(bulletEntity, m_window.getSize());
-
-    CollisionHelpers::enforceBulletBounds(bulletEntity, collidesWithBoundary);
+    for (auto specialBulletEntity : m_entities.getEntities(EntityTags::SpecialBullet)) {
+      bool collision = CollisionHelpers::calculateCollisionBetweenEntities(
+          enemyEntity, specialBulletEntity);
+      if (collision) {
+        specialBulletEntity->destroy();
+        enemyEntity->destroy();
+        m_score = m_score + 5;
+        spawnSmallEnemies(enemyEntity);
+      }
+    }
   }
 
   for (auto smallEnemyEntity : m_entities.getEntities(EntityTags::SmallEnemy)) {
@@ -371,10 +374,35 @@ void Game::sCollision() {
         m_score = m_score + 5;
         spawnSmallEnemies(smallEnemyEntity);
       }
+      std::bitset<4> collidesWithBoundary =
+          CollisionHelpers::detectOutOfBounds(bulletEntity, m_window.getSize());
+
+      CollisionHelpers::enforceBulletBounds(bulletEntity, collidesWithBoundary);
+    }
+
+    for (auto specialBulletEntity : m_entities.getEntities(EntityTags::SpecialBullet)) {
+      bool collision = CollisionHelpers::calculateCollisionBetweenEntities(
+          smallEnemyEntity, specialBulletEntity);
+      if (collision) {
+        specialBulletEntity->destroy();
+        smallEnemyEntity->destroy();
+        m_score = m_score + 10;
+        spawnSmallEnemies(smallEnemyEntity);
+      }
+      std::bitset<4> collidesWithBoundary =
+          CollisionHelpers::detectOutOfBounds(specialBulletEntity, m_window.getSize());
+
+      CollisionHelpers::enforceBulletBounds(specialBulletEntity, collidesWithBoundary);
     }
   }
-}
 
+  for (auto bulletEntity : bulletEntities) {
+    std::bitset<4> collidesWithBoundary =
+        CollisionHelpers::detectOutOfBounds(bulletEntity, m_window.getSize());
+
+    CollisionHelpers::enforceBulletBounds(bulletEntity, collidesWithBoundary);
+  }
+}
 void Game::spawnPlayer() {
   const PlayerConfig           &m_playerConfig = m_configReader.getPlayerConfig();
   const std::shared_ptr<Entity> player         = m_entities.addEntity(EntityTags::Player);
@@ -415,13 +443,25 @@ void Game::spawnEnemy() {
   const sf::Color COLOR             = COLORS[rand() % 7];
   const sf::Color OUTLINE = sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OB);
 
-  const float RANDOM_POS_X = rand() % m_window.getSize().x;
-  const float RANDOM_POS_Y = rand() % m_window.getSize().y;
-  const Vec2  RANDOM_POS   = Vec2(RANDOM_POS_X, RANDOM_POS_Y);
+  const int MIN_DISTANCE_TO_PLAYER = 10;
 
-  const float RANDOM_VEL_X = rand() % 2 ? -1 : 1;
-  const float RANDOM_VEL_Y = rand() % 2 ? -1 : 1;
-  const Vec2  RANDOM_VEL   = Vec2(RANDOM_VEL_X, RANDOM_VEL_Y);
+  float randomPosX;
+  float randomPosY;
+  float distanceToPlayer;
+  bool  tooCloseToPlayer;
+
+  do {
+    randomPosX = rand() % m_window.getSize().x;
+    randomPosY = rand() % m_window.getSize().y;
+
+    distanceToPlayer = MathHelpers::pythagoras(randomPosX - m_player->cTransform->pos.x,
+                                               randomPosY - m_player->cTransform->pos.y);
+
+    tooCloseToPlayer = distanceToPlayer < MIN_DISTANCE_TO_PLAYER;
+  } while (tooCloseToPlayer);
+
+  const Vec2 RANDOM_POS = Vec2(randomPosX, randomPosY);
+  const Vec2 RANDOM_VEL = Vec2(rand() % 2 ? -1 : 1, rand() % 2 ? -1 : 1);
 
   std::shared_ptr<Entity> enemy = m_entities.addEntity(EntityTags::Enemy);
 
@@ -577,7 +617,7 @@ void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity) {
         Vec2(START_POSITION.x + 100 * cos(MathHelpers::degreesToRadians(bulletAngle)),
              START_POSITION.y + 100 * sin(MathHelpers::degreesToRadians(bulletAngle)));
 
-    std::shared_ptr<Entity> bullet = m_entities.addEntity(EntityTags::Bullet);
+    std::shared_ptr<Entity> specialBullet = m_entities.addEntity(EntityTags::SpecialBullet);
 
     const Vec2 VELOCITY =
         Vec2(numberOfBullets * cos(MathHelpers::degreesToRadians(bulletAngle)),
@@ -589,10 +629,10 @@ void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity) {
     const auto cLifespan  = std::make_shared<CLifespan>(LIFESPAN);
     const auto cCollision = std::make_shared<CCollision>(COLLISION_RADIUS);
 
-    bullet->cTransform = cTransform;
-    bullet->cShape     = cShape;
-    bullet->cLifespan  = cLifespan;
-    bullet->cCollision = cCollision;
+    specialBullet->cTransform = cTransform;
+    specialBullet->cShape     = cShape;
+    specialBullet->cLifespan  = cLifespan;
+    specialBullet->cCollision = cCollision;
 
     angle += angleIncrement;
   }
