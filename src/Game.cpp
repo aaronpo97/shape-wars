@@ -45,7 +45,6 @@ void Game::setPaused(bool paused) {
 }
 
 void Game::sMovement() {
-
   const PlayerConfig &m_playerConfig = m_configReader.getPlayerConfig();
   Vec2                playerVelocity;
 
@@ -403,6 +402,7 @@ void Game::sCollision() {
     CollisionHelpers::enforceBulletBounds(bulletEntity, collidesWithBoundary);
   }
 }
+
 void Game::spawnPlayer() {
   const PlayerConfig           &m_playerConfig = m_configReader.getPlayerConfig();
   const std::shared_ptr<Entity> player         = m_entities.addEntity(EntityTags::Player);
@@ -443,7 +443,7 @@ void Game::spawnEnemy() {
   const sf::Color COLOR             = COLORS[rand() % 7];
   const sf::Color OUTLINE = sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OB);
 
-  const int MIN_DISTANCE_TO_PLAYER = 10;
+  const int MIN_DISTANCE_TO_PLAYER = 100;
 
   float randomPosX;
   float randomPosY;
@@ -480,7 +480,6 @@ void Game::spawnEnemy() {
 }
 
 void Game::spawnSmallEnemies(std::shared_ptr<Entity> parentEntity) {
-
   const std::shared_ptr<CShape>     &parentCShape     = parentEntity->cShape;
   const std::shared_ptr<CTransform> &parentCTransform = parentEntity->cTransform;
   const std::shared_ptr<CCollision> &parentCCollision = parentEntity->cCollision;
@@ -537,7 +536,6 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> parentEntity) {
 }
 
 void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos) {
-
   const BulletConfig &m_bulletConfig = m_configReader.getBulletConfig();
   /*
    * This Difference is used to determine the direction of the bullet.
