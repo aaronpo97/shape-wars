@@ -5,13 +5,23 @@
 
 namespace CollisionHelpers {
 
+  bool hasNullComponentPointers(const std::shared_ptr<Entity> &entity) {
+    const bool cTransformIsNullPtr = !entity->cTransform;
+    const bool cCollisionIsNullPtr = !entity->cCollision;
+    return cTransformIsNullPtr || cCollisionIsNullPtr;
+  }
+
   enum Boundaries { TOP, BOTTOM, LEFT, RIGHT };
+
   std::bitset<4> detectOutOfBounds(const std::shared_ptr<Entity> &entity,
                                    const sf::Vector2u            &window_size) {
 
-    if (!entity->cTransform || !entity->cCollision) {
-      return std::bitset<4>();
+    if (hasNullComponentPointers(entity)) {
+      throw std::runtime_error("Entity " + entity->tag() + ", with ID " +
+                               std::to_string(entity->id()) +
+                               " lacks a transform or collision component.");
     }
+
     const Vec2 &pos    = entity->cTransform->pos;
     const float radius = entity->cCollision->radius;
 
@@ -27,8 +37,10 @@ namespace CollisionHelpers {
   void enforcePlayerBounds(const std::shared_ptr<Entity> &entity,
                            const std::bitset<4>          &collides,
                            const sf::Vector2u            &window_size) {
-    if (!entity->cTransform || !entity->cCollision) {
-      return;
+    if (hasNullComponentPointers(entity)) {
+      throw std::runtime_error("Entity " + entity->tag() + ", with ID " +
+                               std::to_string(entity->id()) +
+                               " lacks a transform or collision component.");
     }
     const float radius = entity->cCollision->radius;
     if (collides[TOP]) {
@@ -48,8 +60,11 @@ namespace CollisionHelpers {
   void enforceEnemyBounds(const std::shared_ptr<Entity> &entity,
                           const std::bitset<4>          &collides,
                           const sf::Vector2u            &window_size) {
-    if (!entity->cTransform || !entity->cCollision) {
-      return;
+
+    if (hasNullComponentPointers(entity)) {
+      throw std::runtime_error("Entity " + entity->tag() + ", with ID " +
+                               std::to_string(entity->id()) +
+                               " lacks a transform or collision component.");
     }
 
     const float radius = entity->cCollision->radius;
@@ -73,6 +88,11 @@ namespace CollisionHelpers {
 
   void enforceBulletBounds(const std::shared_ptr<Entity> &entity,
                            const std::bitset<4>          &collides) {
+    if (hasNullComponentPointers(entity)) {
+      throw std::runtime_error("Entity " + entity->tag() + ", with ID " +
+                               std::to_string(entity->id()) +
+                               " lacks a transform or collision component.");
+    }
     if (collides.any()) {
       entity->destroy();
     }
@@ -81,8 +101,16 @@ namespace CollisionHelpers {
   bool calculateCollisionBetweenEntities(const std::shared_ptr<Entity> &entityA,
                                          const std::shared_ptr<Entity> &entityB) {
 
-    if (!entityA->cCollision || !entityB->cCollision) {
-      return false;
+    if (hasNullComponentPointers(entityA)) {
+      throw std::runtime_error("Entity " + entityA->tag() + ", with ID " +
+                               std::to_string(entityA->id()) +
+                               " lacks a transform or collision component.");
+    }
+
+    if (hasNullComponentPointers(entityB)) {
+      throw std::runtime_error("Entity " + entityB->tag() + ", with ID " +
+                               std::to_string(entityB->id()) +
+                               " lacks a transform or collision component.");
     }
 
     const Vec2 &centerPositionA = entityA->cTransform->pos;

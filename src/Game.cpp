@@ -607,11 +607,11 @@ void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity) {
   const int VERTICES          = 10;
   const int ANGLE             = 0;
 
-  const int   numberOfBullets = 5;
-  const float angleIncrement  = 360.0f / static_cast<float>(numberOfBullets);
-  float       angle           = 0.0f;
+  const int   NUMBER_OF_BULLETS = 5;
+  const float ANGLE_INCREMENT   = 360.0f / static_cast<float>(NUMBER_OF_BULLETS);
 
-  for (int i = 0; i < numberOfBullets; i++) {
+  float angle = 0.0f;
+  for (int i = 0; i < NUMBER_OF_BULLETS; i++) {
     const float bulletAngle = PLAYER_ANGLE + angle;
     const Vec2  mousePos =
         Vec2(START_POSITION.x + 100 * cos(MathHelpers::degreesToRadians(bulletAngle)),
@@ -620,8 +620,8 @@ void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity) {
     std::shared_ptr<Entity> specialBullet = m_entities.addEntity(EntityTags::SpecialBullet);
 
     const Vec2 VELOCITY =
-        Vec2(numberOfBullets * cos(MathHelpers::degreesToRadians(bulletAngle)),
-             numberOfBullets * sin(MathHelpers::degreesToRadians(bulletAngle)));
+        Vec2(NUMBER_OF_BULLETS * cos(MathHelpers::degreesToRadians(bulletAngle)),
+             NUMBER_OF_BULLETS * sin(MathHelpers::degreesToRadians(bulletAngle)));
 
     const auto cTransform = std::make_shared<CTransform>(START_POSITION, VELOCITY, ANGLE);
     const auto cShape =
@@ -634,6 +634,6 @@ void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity) {
     specialBullet->cLifespan  = cLifespan;
     specialBullet->cCollision = cCollision;
 
-    angle += angleIncrement;
+    angle += ANGLE_INCREMENT;
   }
 }
