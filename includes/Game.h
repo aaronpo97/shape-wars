@@ -26,7 +26,7 @@ private:
 
   sf::SoundBuffer shootBuffer;
   sf::Sound       shootSound;
-  sf::SoundBuffer enemyShootBuffer;
+  sf::SoundBuffer enemyHit;
   sf::Sound       enemyShootSound;
   sf::SoundBuffer specialWeaponBuffer;
   sf::Sound       specialWeaponSound;

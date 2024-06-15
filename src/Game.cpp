@@ -20,10 +20,10 @@ void Game::init(const std::string &config_path) {
   m_window.create(sf::VideoMode(WindowConfig.W, WindowConfig.H), "SFML works!");
   m_window.setFramerateLimit(WindowConfig.FL);
 
-  shootBuffer.loadFromFile("../assets/sounds/placeholder.wav");
-  enemyShootBuffer.loadFromFile("../assets/sounds/placeholder.wav");
-  specialWeaponBuffer.loadFromFile("../assets/sounds/placeholder.wav");
-  playerHitBuffer.loadFromFile("../assets/sounds/placeholder.wav");
+  shootBuffer.loadFromFile("../assets/sounds/shoot.wav");
+  enemyHit.loadFromFile("../assets/sounds/enemy-hit.wav");
+  specialWeaponBuffer.loadFromFile("../assets/sounds/special-weapon.wav");
+  playerHitBuffer.loadFromFile("../assets/sounds/player-hit.wav");
 
   spawnPlayer();
 }
@@ -677,7 +677,7 @@ void Game::playSound(SoundType soundType) {
       break;
     }
     case SoundType::ENEMY_SHOOT: {
-      enemyShootSound.setBuffer(enemyShootBuffer);
+      enemyShootSound.setBuffer(enemyHit);
       enemyShootSound.play();
       break;
     }
