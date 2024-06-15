@@ -340,6 +340,7 @@ void Game::sCollision() {
       bool collision =
           CollisionHelpers::calculateCollisionBetweenEntities(playerEntity, enemyEntity);
       if (collision) {
+        playSound();
         playerEntity->destroy();
         m_score = m_score > 0 ? m_score - 1 : 0;
         spawnPlayer();
@@ -364,6 +365,7 @@ void Game::sCollision() {
       bool collision =
           CollisionHelpers::calculateCollisionBetweenEntities(enemyEntity, bulletEntity);
       if (collision) {
+        playSound();
         bulletEntity->destroy();
         enemyEntity->destroy();
         m_score = m_score + 2;
@@ -375,6 +377,8 @@ void Game::sCollision() {
       bool collision = CollisionHelpers::calculateCollisionBetweenEntities(
           enemyEntity, specialBulletEntity);
       if (collision) {
+        playSound();
+
         specialBulletEntity->destroy();
         enemyEntity->destroy();
         m_score = m_score + 5;
@@ -395,6 +399,7 @@ void Game::sCollision() {
       bool collision =
           CollisionHelpers::calculateCollisionBetweenEntities(smallEnemyEntity, bulletEntity);
       if (collision) {
+        playSound();
         bulletEntity->destroy();
         smallEnemyEntity->destroy();
         m_score = m_score + 5;
@@ -410,6 +415,7 @@ void Game::sCollision() {
       bool collision = CollisionHelpers::calculateCollisionBetweenEntities(
           smallEnemyEntity, specialBulletEntity);
       if (collision) {
+        playSound();
         specialBulletEntity->destroy();
         smallEnemyEntity->destroy();
         m_score = m_score + 10;
