@@ -27,8 +27,9 @@ objects/
 # Dependency directories
 lib/
 vendor/
+dependencies/
 
 .DS_Store
 *.hpp.gch
 
-dependencies/
+info.md
