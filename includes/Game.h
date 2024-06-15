@@ -22,6 +22,8 @@ private:
 
   std::shared_ptr<Entity> m_player;
 
+  enum class SoundType { SHOOT, ENEMY_SHOOT, SPECIAL_WEAPON, PLAYER_HIT };
+
   sf::SoundBuffer shootBuffer;
   sf::Sound       shootSound;
   sf::SoundBuffer enemyShootBuffer;
@@ -30,6 +32,7 @@ private:
   sf::Sound       specialWeaponSound;
   sf::SoundBuffer playerHitBuffer;
   sf::Sound       playerHitSound;
+  void            playSound(SoundType soundType);
 
   void init(const std::string &config);
   void setPaused(bool paused);
@@ -46,8 +49,6 @@ private:
   void spawnSmallEnemies(std::shared_ptr<Entity> entity);
   void spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos);
   void spawnSpecialWeapon(std::shared_ptr<Entity> entity);
-
-  void playSound();
 
 public:
   Game(const std::string &config);
