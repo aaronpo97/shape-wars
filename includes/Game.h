@@ -1,8 +1,8 @@
 #include "./ConfigReader.h"
 #include "./Entity.h"
 #include "EntityManager.h"
+#include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
-
 class Game {
 private:
   sf::RenderWindow m_window;
@@ -20,6 +20,9 @@ private:
   int              m_maxSpecialWeaponUsage = 30;
   int              m_specialWeaponCooldown = 70;
 
+  sf::Sound shootSound;
+
+  sf::SoundBuffer         shootBuffer;
   std::shared_ptr<Entity> m_player;
 
   void init(const std::string &config);
@@ -37,6 +40,8 @@ private:
   void spawnSmallEnemies(std::shared_ptr<Entity> entity);
   void spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos);
   void spawnSpecialWeapon(std::shared_ptr<Entity> entity);
+
+  void playSound();
 
 public:
   Game(const std::string &config);

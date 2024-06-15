@@ -19,6 +19,8 @@ void Game::init(const std::string &config_path) {
   const auto &WindowConfig = m_configReader.getWindowConfig();
   m_window.create(sf::VideoMode(WindowConfig.W, WindowConfig.H), "SFML works!");
   m_window.setFramerateLimit(WindowConfig.FL);
+
+  shootBuffer.loadFromFile("../assets/sounds/placeholder.wav");
   spawnPlayer();
 }
 
@@ -307,6 +309,7 @@ void Game::sSpawner() {
   }
 
   if (bulletSpawnEnabled) {
+    playSound();
     Vec2 mousePos{static_cast<float>(sf::Mouse::getPosition(m_window).x),
                   static_cast<float>(sf::Mouse::getPosition(m_window).y)};
 
@@ -652,4 +655,9 @@ void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity) {
 
     angle += ANGLE_INCREMENT;
   }
+}
+
+void Game::playSound() {
+  shootSound.setBuffer(shootBuffer);
+  shootSound.play();
 }
