@@ -28,7 +28,7 @@ void Game::run() {
     m_entities.update();
 
     if (!m_paused && m_lives > 0) {
-      sEnemySpawner();
+      sSpawner();
       sMovement();
       sCollision();
       sLifespan();
@@ -81,11 +81,12 @@ void Game::sMovement() {
 }
 
 void Game::sUserInput() {
-  bool &up_triggered    = m_player->cInput->up;
-  bool &left_triggered  = m_player->cInput->left;
-  bool &down_triggered  = m_player->cInput->down;
-  bool &right_triggered = m_player->cInput->right;
-  bool &shoot_triggered = m_player->cInput->shoot;
+  bool &up_triggered      = m_player->cInput->up;
+  bool &left_triggered    = m_player->cInput->left;
+  bool &down_triggered    = m_player->cInput->down;
+  bool &right_triggered   = m_player->cInput->right;
+  bool &shoot_triggered   = m_player->cInput->shoot;
+  bool &special_triggered = m_player->cInput->special;
 
   sf::Event event;
 
@@ -171,7 +172,7 @@ void Game::sUserInput() {
 
     if (mouse_pressed) {
       if (right_mouse_pressed) {
-        spawnSpecialWeapon(m_player);
+        special_triggered = true;
       }
       if (left_mouse_pressed) {
         shoot_triggered = true;
@@ -288,18 +289,35 @@ void Game::sRender() {
   m_window.display();
 }
 
-void Game::sEnemySpawner() {
-  // spawn an enemy every 60 frames
-  if (m_currentFrame - m_lastEnemySpawnTime > 60) {
+void Game::sSpawner() {
+  const EnemyConfig         &m_enemyConfig         = m_configReader.getEnemyConfig();
+  const SpecialWeaponConfig &m_specialWeaponConfig = m_configReader.getSpecialWeaponConfig();
+
+  const int framesSinceLastEnemySpawn = m_currentFrame - m_lastEnemySpawnTime;
+
+  const int enemySpawnInterval    = m_enemyConfig.SI;
+  const int specialWeaponCooldown = m_specialWeaponConfig.CD;
+
+  const bool bulletSpawnEnabled        = m_player->cInput->shoot;
+  bool       specialWeaponSpawnEnabled = m_player->cInput->special;
+  const bool enemySpawnEnabled         = framesSinceLastEnemySpawn > enemySpawnInterval;
+
+  if (enemySpawnEnabled) {
     spawnEnemy();
   }
 
-  if (m_player->cInput->shoot) {
+  if (bulletSpawnEnabled) {
     Vec2 mousePos{static_cast<float>(sf::Mouse::getPosition(m_window).x),
                   static_cast<float>(sf::Mouse::getPosition(m_window).y)};
 
     spawnBullet(m_player, mousePos);
     m_player->cInput->shoot = false;
+  }
+
+  if (specialWeaponSpawnEnabled && m_specialWeaponCounter < m_maxSpecialWeaponUsage) {
+    spawnSpecialWeapon(m_player);
+    m_specialWeaponCounter++;
+    m_player->cInput->special = false;
   }
 }
 
@@ -465,8 +483,6 @@ void Game::spawnEnemy() {
 
   std::shared_ptr<Entity> enemy = m_entities.addEntity(EntityTags::Enemy);
 
-  m_lastEnemySpawnTime = m_currentFrame;
-
   const auto cTransform = std::make_shared<CTransform>(RANDOM_POS, RANDOM_VEL, RANDOM_ANGLE);
   const auto cShape =
       std::make_shared<CShape>(RADIUS, RANDOM_VERTICES, COLOR, OUTLINE, OUTLINE_THICKNESS);
@@ -477,6 +493,8 @@ void Game::spawnEnemy() {
   enemy->cShape     = cShape;
   enemy->cLifespan  = cLifespan;
   enemy->cCollision = cCollision;
+
+  m_lastEnemySpawnTime = m_currentFrame;
 }
 
 void Game::spawnSmallEnemies(std::shared_ptr<Entity> parentEntity) {

@@ -56,11 +56,12 @@ public:
 
 class CInput {
 public:
-  bool up    = false;
-  bool down  = false;
-  bool left  = false;
-  bool right = false;
-  bool shoot = false;
+  bool up      = false;
+  bool down    = false;
+  bool left    = false;
+  bool right   = false;
+  bool shoot   = false;
+  bool special = false;
 
   CInput() {}
 };

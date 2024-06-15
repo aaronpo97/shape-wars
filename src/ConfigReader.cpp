@@ -22,7 +22,7 @@ void ConfigReader::read() {
   m_enemyConfig.VMIN = 3;
   m_enemyConfig.VMAX = 6;
   m_enemyConfig.L    = 1000;
-  m_enemyConfig.SI   = 8;
+  m_enemyConfig.SI   = 120;
   m_enemyConfig.SMIN = 90;
   m_enemyConfig.SMAX = 60;
 
