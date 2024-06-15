@@ -21,6 +21,10 @@ void Game::init(const std::string &config_path) {
   m_window.setFramerateLimit(WindowConfig.FL);
 
   shootBuffer.loadFromFile("../assets/sounds/placeholder.wav");
+  enemyShootBuffer.loadFromFile("../assets/sounds/placeholder.wav");
+  specialWeaponBuffer.loadFromFile("../assets/sounds/placeholder.wav");
+  playerHitBuffer.loadFromFile("../assets/sounds/placeholder.wav");
+
   spawnPlayer();
 }
 
@@ -305,6 +309,7 @@ void Game::sSpawner() {
   const bool enemySpawnEnabled         = framesSinceLastEnemySpawn > enemySpawnInterval;
 
   if (enemySpawnEnabled) {
+    playSound();
     spawnEnemy();
   }
 
@@ -318,6 +323,7 @@ void Game::sSpawner() {
   }
 
   if (specialWeaponSpawnEnabled && m_specialWeaponCounter < m_maxSpecialWeaponUsage) {
+    playSound();
     spawnSpecialWeapon(m_player);
     m_specialWeaponCounter++;
     m_player->cInput->special = false;

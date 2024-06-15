@@ -20,10 +20,16 @@ private:
   int              m_maxSpecialWeaponUsage = 30;
   int              m_specialWeaponCooldown = 70;
 
-  sf::Sound shootSound;
-
-  sf::SoundBuffer         shootBuffer;
   std::shared_ptr<Entity> m_player;
+
+  sf::SoundBuffer shootBuffer;
+  sf::Sound       shootSound;
+  sf::SoundBuffer enemyShootBuffer;
+  sf::Sound       enemyShootSound;
+  sf::SoundBuffer specialWeaponBuffer;
+  sf::Sound       specialWeaponSound;
+  sf::SoundBuffer playerHitBuffer;
+  sf::Sound       playerHitSound;
 
   void init(const std::string &config);
   void setPaused(bool paused);
