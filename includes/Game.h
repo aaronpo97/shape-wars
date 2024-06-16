@@ -1,5 +1,6 @@
 #include "./ConfigReader.h"
 #include "./Entity.h"
+#include "./SoundManager.h"
 #include "EntityManager.h"
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
@@ -7,6 +8,7 @@ class Game {
 private:
   sf::RenderWindow m_window;
   EntityManager    m_entities;
+  SoundManager     m_soundManager;
   sf::Font         m_font;
   sf::Text         m_text;
   ConfigReader     m_configReader;
@@ -21,18 +23,6 @@ private:
   int              m_specialWeaponCooldown = 70;
 
   std::shared_ptr<Entity> m_player;
-
-  enum class SoundType { SHOOT, ENEMY_SHOOT, SPECIAL_WEAPON, PLAYER_HIT };
-
-  sf::SoundBuffer shootBuffer;
-  sf::Sound       shootSound;
-  sf::SoundBuffer enemyHit;
-  sf::Sound       enemyShootSound;
-  sf::SoundBuffer specialWeaponBuffer;
-  sf::Sound       specialWeaponSound;
-  sf::SoundBuffer playerHitBuffer;
-  sf::Sound       playerHitSound;
-  void            playSound(SoundType soundType);
 
   void init(const std::string &config);
   void setPaused(bool paused);

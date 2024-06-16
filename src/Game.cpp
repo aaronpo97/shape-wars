@@ -7,6 +7,7 @@
 #include "../includes/CollisionHelpers.h"
 #include "../includes/Components.h"
 #include "../includes/MathHelpers.h"
+#include "../includes/SoundHelpers.h"
 #include "../includes/Tags.h"
 
 Game::Game(const std::string &config_path) {
@@ -15,15 +16,11 @@ Game::Game(const std::string &config_path) {
 
 void Game::init(const std::string &config_path) {
   m_configReader = ConfigReader(config_path);
+  m_soundManager = SoundManager();
   m_font.loadFromFile("../assets/fonts/Roboto.ttf");
   const auto &WindowConfig = m_configReader.getWindowConfig();
   m_window.create(sf::VideoMode(WindowConfig.W, WindowConfig.H), "SFML works!");
   m_window.setFramerateLimit(WindowConfig.FL);
-
-  shootBuffer.loadFromFile("../assets/sounds/shoot.wav");
-  enemyHit.loadFromFile("../assets/sounds/enemy-hit.wav");
-  specialWeaponBuffer.loadFromFile("../assets/sounds/special-weapon.wav");
-  playerHitBuffer.loadFromFile("../assets/sounds/player-hit.wav");
 
   spawnPlayer();
 }
@@ -309,12 +306,12 @@ void Game::sSpawner() {
   const bool enemySpawnEnabled         = framesSinceLastEnemySpawn > enemySpawnInterval;
 
   if (enemySpawnEnabled) {
-    playSound(SoundType::ENEMY_SHOOT);
+    m_soundManager.playSound(SoundType::ENEMY_SHOOT);
     spawnEnemy();
   }
 
   if (bulletSpawnEnabled) {
-    playSound(SoundType::SHOOT);
+    m_soundManager.playSound(SoundType::SHOOT);
     Vec2 mousePos{static_cast<float>(sf::Mouse::getPosition(m_window).x),
                   static_cast<float>(sf::Mouse::getPosition(m_window).y)};
 
@@ -323,7 +320,7 @@ void Game::sSpawner() {
   }
 
   if (specialWeaponSpawnEnabled && m_specialWeaponCounter < m_maxSpecialWeaponUsage) {
-    playSound(SoundType::SPECIAL_WEAPON);
+    m_soundManager.playSound(SoundType::SPECIAL_WEAPON);
     spawnSpecialWeapon(m_player);
     m_specialWeaponCounter++;
     m_player->cInput->special = false;
@@ -340,7 +337,7 @@ void Game::sCollision() {
       bool collision =
           CollisionHelpers::calculateCollisionBetweenEntities(playerEntity, enemyEntity);
       if (collision) {
-        playSound(SoundType::PLAYER_HIT);
+        m_soundManager.playSound(SoundType::PLAYER_HIT);
         playerEntity->destroy();
         m_score = m_score > 0 ? m_score - 1 : 0;
         spawnPlayer();
@@ -365,7 +362,7 @@ void Game::sCollision() {
       bool collision =
           CollisionHelpers::calculateCollisionBetweenEntities(enemyEntity, bulletEntity);
       if (collision) {
-        playSound(SoundType::ENEMY_SHOOT);
+        m_soundManager.playSound(SoundType::ENEMY_SHOOT);
         bulletEntity->destroy();
         enemyEntity->destroy();
         m_score = m_score + 2;
@@ -377,7 +374,7 @@ void Game::sCollision() {
       bool collision = CollisionHelpers::calculateCollisionBetweenEntities(
           enemyEntity, specialBulletEntity);
       if (collision) {
-        playSound(SoundType::ENEMY_SHOOT);
+        m_soundManager.playSound(SoundType::ENEMY_SHOOT);
 
         specialBulletEntity->destroy();
         enemyEntity->destroy();
@@ -399,7 +396,7 @@ void Game::sCollision() {
       bool collision =
           CollisionHelpers::calculateCollisionBetweenEntities(smallEnemyEntity, bulletEntity);
       if (collision) {
-        playSound(SoundType::ENEMY_SHOOT);
+        m_soundManager.playSound(SoundType::ENEMY_SHOOT);
         bulletEntity->destroy();
         smallEnemyEntity->destroy();
         m_score = m_score + 5;
@@ -415,7 +412,7 @@ void Game::sCollision() {
       bool collision = CollisionHelpers::calculateCollisionBetweenEntities(
           smallEnemyEntity, specialBulletEntity);
       if (collision) {
-        playSound(SoundType::ENEMY_SHOOT);
+        m_soundManager.playSound(SoundType::ENEMY_SHOOT);
         specialBulletEntity->destroy();
         smallEnemyEntity->destroy();
         m_score = m_score + 10;
@@ -666,33 +663,5 @@ void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity) {
     specialBullet->cCollision = cCollision;
 
     angle += ANGLE_INCREMENT;
-  }
-}
-
-void Game::playSound(SoundType soundType) {
-  switch (soundType) {
-    case SoundType::SHOOT: {
-      shootSound.setBuffer(shootBuffer);
-      shootSound.play();
-      break;
-    }
-    case SoundType::ENEMY_SHOOT: {
-      enemyShootSound.setBuffer(enemyHit);
-      enemyShootSound.play();
-      break;
-    }
-    case SoundType::SPECIAL_WEAPON: {
-      specialWeaponSound.setBuffer(specialWeaponBuffer);
-      specialWeaponSound.play();
-      break;
-    }
-    case SoundType::PLAYER_HIT: {
-      playerHitSound.setBuffer(playerHitBuffer);
-      playerHitSound.play();
-      break;
-    }
-    default: {
-      break;
-    }
   }
 }
